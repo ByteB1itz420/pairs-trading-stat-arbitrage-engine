@@ -118,7 +118,7 @@
             <h3>Your chart starts with data</h3>
             <p>Try the generated example, or choose a CSV with timestamp, symbol, and adjusted_close columns.</p>
             <button class="button button-green" id="empty-demo-button" type="button">Load demo prices</button>
-            <small>For the Python backtest, connect a Railway API and include an open column.</small>
+            <small>For the Python backtest, connect a Railway API and include adjusted_open (or legacy open on the same adjustment basis).</small>
           </div>
 
           <div class="charts" id="charts" hidden>
@@ -161,7 +161,7 @@
               </div>
               <button id="run-backtest" class="button button-green" type="button">Screen &amp; backtest</button>
             </div>
-            <p class="backtest-help">Uses a chronological 70/30 train/test split, Engle–Granger screening on training data, and next-open execution. Requires at least 100 training observations and valid <code>open</code> prices. Results are research output, not trading advice.</p>
+            <p class="backtest-help">Uses a chronological 70/30 train/test split, Engle–Granger screening on training data, and next-open execution. Requires at least 100 training observations and valid <code>adjusted_open</code> prices (or a same-basis legacy <code>open</code>). Results are research output, not trading advice.</p>
             <div id="backtest-status" class="backtest-status" role="status" aria-live="polite" hidden></div>
             <div id="backtest-results" class="backtest-results" hidden>
               <div id="backtest-metrics" class="backtest-metrics"></div>
@@ -180,7 +180,7 @@
         <h2>Where the data comes from</h2>
         <div class="how-grid">
           <article><span class="step-number">01</span><h3>Choose a source</h3><p>The demo is generated in your browser. Real prices only load after you choose your own CSV.</p></article>
-          <article><span class="step-number">02</span><h3>Check the columns</h3><p>Use one row per asset and date with <code>timestamp</code>, <code>symbol</code>, positive <code>adjusted_close</code>, and <code>open</code> for backtests.</p></article>
+          <article><span class="step-number">02</span><h3>Check the columns</h3><p>Use one row per asset and date with <code>timestamp</code>, <code>symbol</code>, positive <code>adjusted_close</code>, and <code>adjusted_open</code> for backtests (or a same-basis legacy <code>open</code>).</p></article>
           <article><span class="step-number">03</span><h3>Choose what to send</h3><p>Charts stay local. Backtest rows are sent to your configured Railway API only after you press Screen &amp; backtest.</p></article>
         </div>
         <div class="engine-note">
