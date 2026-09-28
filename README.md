@@ -173,7 +173,7 @@ uvicorn pairs_trading.api:app --host 127.0.0.1 --port 8000
 
 The service exposes `GET /healthz` and `POST /api/v1/backtest`. It validates the submitted pair, runs Engle–Granger screening strictly through `train_end`, and only backtests later observations with next-open execution and configured costs. It returns the training diagnostic, out-of-sample metrics, equity points, and completed trades. The API writes no uploaded market rows to disk.
 
-The API accepts at most 40,000 selected-pair rows and 8 MiB per request. It requires `timestamp`, `symbol`, positive `adjusted_close`, and positive `open` prices; at least 100 aligned training dates and a later test period are required by the website. The local chart explorer still works with CSVs that omit `open`, but the backtest action will require it.
+The API accepts at most 40,000 selected-pair rows and 8 MiB per request. Its JSON API requires `timestamp`, `symbol`, positive `adjusted_close`, and positive `open` prices; the browser maps a CSV `adjusted_open` field to the API's legacy `open` field. At least 100 aligned training dates and a later test period are required by the website. The local chart explorer still works with CSVs that omit an execution open, but the backtest action requires one.
 
 ### Deploy the Python API on Railway
 
@@ -205,9 +205,9 @@ The production frontend and API are live at the URLs above. The Railway health e
 ### Why data may appear not to load
 
 - Neither UI downloads market data automatically. The Python workbench creates synthetic demo data, or the user must upload a CSV. The static site also starts with generated demo prices and only reads a real CSV after **Choose price file**.
-- The Python upload expects long-format rows with exact column names `timestamp`, `symbol`, `adjusted_close`, and `open`. `open` is required for next-session execution; uploaded files remain in memory.
+- The Python upload expects long-format rows with `timestamp`, `symbol`, `adjusted_close`, and either `adjusted_open` or a legacy same-basis `open`. An execution open is required for next-session fills; uploaded files remain in memory.
 - Headers using another spelling, wide-format price tables, duplicate symbol/date rows, non-positive/non-numeric prices, missing history, or fewer than 20 common dates are rejected with an error instead of being imputed.
-- The static explorer only needs `timestamp`, `symbol`, and `adjusted_close` for charts. A Python API backtest also needs valid `open` prices.
+- The static explorer only needs `timestamp`, `symbol`, and `adjusted_close` for charts. A Python API backtest also needs valid execution opens.
 - The static page cannot read `data/raw/prices.csv` from the Git checkout or your computer automatically. Select a file explicitly; browser filesystem isolation prevents silent local-file access. Data stays in the browser unless **Screen & backtest** is explicitly pressed.
 
 If no actual dataset was selected, the interface will say so; a successful demo or CSV load displays its row count, symbols, and date range. The Railway API URL, CORS origins, and API key must match the account's deployed service settings.
