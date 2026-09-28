@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from dataclasses import replace
 from datetime import date
 import math
 
 import pandas as pd
 
 from pairs_trading.backtest.events import (
-    BacktestEvent,
     EndOfDataEvent,
     EventQueue,
     ExecuteOrderEvent,
@@ -23,7 +23,7 @@ from pairs_trading.backtest.execution import ExecutionModel
 from pairs_trading.backtest.portfolio import PortfolioLedger, Valuation
 from pairs_trading.config import ExecutionConfig, SignalConfig
 from pairs_trading.data.validation import MarketData
-from pairs_trading.research.cointegration import PairAnalysis
+from pairs_trading.research.cointegration import PairAnalysis, estimate_ols_parameters
 from pairs_trading.research.spread import calculate_spread, rolling_zscore
 from pairs_trading.signals.zscore import (
     PositionSide,
@@ -51,12 +51,25 @@ class CancelledOrder:
 
 
 @dataclass(frozen=True)
+class PairRefit:
+    timestamp: pd.Timestamp
+    lookback_start: pd.Timestamp
+    lookback_end: pd.Timestamp
+    observations: int
+    intercept: float
+    hedge_ratio: float
+
+
+@dataclass(frozen=True)
 class BacktestResult:
     equity_curve: pd.DataFrame
+    spread: pd.Series
+    zscore: pd.Series
     signals: tuple[Signal, ...]
     fills: tuple[Fill, ...]
     trades: tuple[TradeRecord, ...]
     cancelled_orders: tuple[CancelledOrder, ...]
+    refits: tuple[PairRefit, ...]
 
 
 class BacktestEngine:
@@ -70,6 +83,9 @@ class BacktestEngine:
         execution_config: ExecutionConfig,
         start_date: str | date | pd.Timestamp | None = None,
         end_date: str | date | pd.Timestamp | None = None,
+        refit_frequency_days: int = 0,
+        formation_window_days: int = 252,
+        min_refit_observations: int = 100,
     ) -> None:
         if market.open is None:
             raise ValueError("Next-open execution requires open prices in the market data.")
@@ -77,6 +93,13 @@ class BacktestEngine:
             raise ValueError("Backtesting requires a fitted pair model.")
         if pair.symbol_a not in market.adjusted_close or pair.symbol_b not in market.adjusted_close:
             raise ValueError("Market data does not contain both fitted pair symbols.")
+        if refit_frequency_days < 0:
+            raise ValueError("refit_frequency_days cannot be negative.")
+        if refit_frequency_days and (
+            formation_window_days < min_refit_observations
+            or min_refit_observations < 20
+        ):
+            raise ValueError("Refit windows must contain at least 20 observations.")
         all_dates = market.adjusted_close.index
         start = pd.Timestamp(start_date) if start_date is not None else all_dates.min()
         end = pd.Timestamp(end_date) if end_date is not None else all_dates.max()
@@ -86,13 +109,14 @@ class BacktestEngine:
         self.pair = pair
         self.signal_config = signal_config
         self.execution_config = execution_config
+        self.refit_frequency_days = refit_frequency_days
+        self.formation_window_days = formation_window_days
+        self.min_refit_observations = min_refit_observations
         self.dates = all_dates[(all_dates >= start) & (all_dates <= end)]
         if len(self.dates) == 0:
             raise ValueError("The requested backtest date range has no observations.")
 
     def run(self) -> BacktestResult:
-        spread = calculate_spread(self.market.adjusted_close, self.pair)
-        zscores = rolling_zscore(spread, self.signal_config.zscore_window_days)
         close_prices = self.market.adjusted_close
         open_prices = self.market.open
         if open_prices is None:
@@ -113,13 +137,7 @@ class BacktestEngine:
                     {symbol: float(value) for symbol, value in close_prices.loc[timestamp].items()},
                 )
             )
-            value = zscores.loc[timestamp]
-            queue.push(
-                StrategyEvent(
-                    timestamp,
-                    float(value) if pd.notna(value) and math.isfinite(float(value)) else None,
-                )
-            )
+            queue.push(StrategyEvent(timestamp))
         final_timestamp = self.dates[-1]
         queue.push(
             EndOfDataEvent(
@@ -138,7 +156,12 @@ class BacktestEngine:
         signals: list[Signal] = []
         trades: list[TradeRecord] = []
         cancelled_orders: list[CancelledOrder] = []
+        refits: list[PairRefit] = []
         valuations: list[Valuation] = []
+        spread_values: dict[pd.Timestamp, float] = {}
+        zscore_values: dict[pd.Timestamp, float] = {}
+        current_pair = self.pair
+        sessions_processed = 0
         trade_start_equity: float | None = None
         trade_start_costs = 0.0
         trade_side = PositionSide.FLAT
@@ -206,10 +229,59 @@ class BacktestEngine:
                 valuation = portfolio.mark_to_market(event.timestamp, event.prices)
                 valuations.append(valuation)
                 previous_close = event.prices
+                sessions_processed += 1
                 if strategy.side != PositionSide.FLAT:
                     trade_holding_bars += 1
             elif isinstance(event, StrategyEvent):
-                signal = strategy.on_close(event.timestamp, event.zscore)
+                if (
+                    self.refit_frequency_days
+                    and sessions_processed % self.refit_frequency_days == 0
+                    and strategy.side == PositionSide.FLAT
+                ):
+                    formation = close_prices.loc[:event.timestamp].tail(
+                        self.formation_window_days
+                    )
+                    intercept, hedge_ratio, observations = estimate_ols_parameters(
+                        formation,
+                        self.pair.symbol_a,
+                        self.pair.symbol_b,
+                        min_observations=self.min_refit_observations,
+                    )
+                    current_pair = replace(
+                        self.pair,
+                        intercept=intercept,
+                        hedge_ratio=hedge_ratio,
+                    )
+                    refits.append(
+                        PairRefit(
+                            timestamp=event.timestamp,
+                            lookback_start=formation.index.min(),
+                            lookback_end=formation.index.max(),
+                            observations=observations,
+                            intercept=intercept,
+                            hedge_ratio=hedge_ratio,
+                        )
+                    )
+                feature_prices = close_prices.loc[:event.timestamp].tail(
+                    self.signal_config.zscore_window_days
+                )
+                spread_window = calculate_spread(feature_prices, current_pair)
+                zscore_window = rolling_zscore(
+                    spread_window,
+                    self.signal_config.zscore_window_days,
+                )
+                spread_value = spread_window.iloc[-1]
+                zscore_value = zscore_window.iloc[-1]
+                if pd.notna(spread_value) and math.isfinite(float(spread_value)):
+                    spread_values[event.timestamp] = float(spread_value)
+                if pd.notna(zscore_value) and math.isfinite(float(zscore_value)):
+                    zscore_values[event.timestamp] = float(zscore_value)
+                signal = strategy.on_close(
+                    event.timestamp,
+                    float(zscore_value)
+                    if pd.notna(zscore_value) and math.isfinite(float(zscore_value))
+                    else None,
+                )
                 signals.append(signal)
                 if signal.action == SignalAction.HOLD:
                     continue
@@ -285,6 +357,7 @@ class BacktestEngine:
                 {
                     "timestamp": valuation.timestamp,
                     "cash": valuation.cash,
+                    "cash_benchmark": self.execution_config.initial_capital,
                     "net_equity": valuation.net_equity,
                     "gross_equity": valuation.gross_equity,
                     "gross_exposure": valuation.gross_exposure,
@@ -299,10 +372,13 @@ class BacktestEngine:
         fill_snapshot = tuple(portfolio.fills)
         return BacktestResult(
             equity_curve=equity_curve,
+            spread=pd.Series(spread_values, name="spread"),
+            zscore=pd.Series(zscore_values, name="zscore"),
             signals=tuple(signals),
             fills=fill_snapshot,
             trades=tuple(trades),
             cancelled_orders=tuple(cancelled_orders),
+            refits=tuple(refits),
         )
 
 
@@ -313,6 +389,9 @@ def run_backtest(
     execution_config: ExecutionConfig,
     start_date: str | date | pd.Timestamp | None = None,
     end_date: str | date | pd.Timestamp | None = None,
+    refit_frequency_days: int = 0,
+    formation_window_days: int = 252,
+    min_refit_observations: int = 100,
 ) -> BacktestResult:
     """Public helper for a frozen pair model over a chosen chronological period."""
     return BacktestEngine(
@@ -322,4 +401,7 @@ def run_backtest(
         execution_config,
         start_date=start_date,
         end_date=end_date,
+        refit_frequency_days=refit_frequency_days,
+        formation_window_days=formation_window_days,
+        min_refit_observations=min_refit_observations,
     ).run()

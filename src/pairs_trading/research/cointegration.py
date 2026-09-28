@@ -32,6 +32,32 @@ class PairAnalysis:
     exclusion_reason: str | None = None
 
 
+def estimate_ols_parameters(
+    adjusted_close: pd.DataFrame,
+    symbol_a: str,
+    symbol_b: str,
+    min_observations: int = 20,
+) -> tuple[float, float, int]:
+    """Fit the ordered log-price regression using only the supplied observations."""
+    if min_observations < 2:
+        raise ValueError("At least two observations are required for OLS.")
+    pair = align_pair(
+        adjusted_close,
+        symbol_a,
+        symbol_b,
+        min_observations=min_observations,
+    )
+    symbol_a, symbol_b = pair.columns
+    if not np.isfinite(pair.to_numpy(dtype=float)).all() or (pair <= 0).any().any():
+        raise ValueError(f"Pair {symbol_a}/{symbol_b} must have finite, positive prices.")
+    regression = sm.OLS(
+        np.log(pair[symbol_a]),
+        sm.add_constant(np.log(pair[symbol_b]), has_constant="add"),
+        missing="raise",
+    ).fit()
+    return float(regression.params.iloc[0]), float(regression.params.iloc[1]), len(pair)
+
+
 def analyze_pair(
     adjusted_close: pd.DataFrame,
     symbol_a: str,
@@ -56,15 +82,15 @@ def analyze_pair(
             exclusion_reason=f"requires {min_observations} aligned observations",
         )
 
-    if not np.isfinite(pair.to_numpy(dtype=float)).all() or (pair <= 0).any().any():
-        raise ValueError(f"Pair {symbol_a}/{symbol_b} must have finite, positive prices.")
+    intercept, hedge_ratio, _ = estimate_ols_parameters(
+        pair,
+        symbol_a,
+        symbol_b,
+        min_observations=min_observations,
+    )
+    residual = np.log(pair[symbol_a]) - intercept - hedge_ratio * np.log(pair[symbol_b])
     log_a = np.log(pair[symbol_a])
     log_b = np.log(pair[symbol_b])
-    design = sm.add_constant(log_b, has_constant="add")
-    regression = sm.OLS(log_a, design, missing="raise").fit()
-    intercept = float(regression.params.iloc[0])
-    hedge_ratio = float(regression.params.iloc[1])
-    residual = regression.resid
 
     eg_stat, eg_pvalue, eg_critical = coint(
         log_a,
@@ -78,6 +104,7 @@ def analyze_pair(
         residual,
         regression="n",
         autolag="AIC",
+        result_object=False,
     )
 
     return PairAnalysis(

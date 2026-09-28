@@ -56,7 +56,6 @@ class MarketCloseEvent:
 @dataclass(frozen=True)
 class StrategyEvent:
     timestamp: pd.Timestamp
-    zscore: float | None
 
 
 @dataclass(frozen=True)

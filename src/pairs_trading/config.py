@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from datetime import date
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -23,8 +24,8 @@ class DataConfig:
             raise ValueError("Only daily data is supported by the initial engine.")
         if self.price_field != "adjusted_close":
             raise ValueError("The initial data contract requires adjusted_close prices.")
-        if self.min_observations < 1:
-            raise ValueError("min_observations must be at least 1.")
+        if self.min_observations < 20:
+            raise ValueError("min_observations must be at least 20 for statistical screening.")
 
 
 @dataclass(frozen=True)
@@ -40,8 +41,8 @@ class ScreeningConfig:
             value = getattr(self, name)
             if not 0 < value < 1:
                 raise ValueError(f"{name} must be between 0 and 1.")
-        if self.formation_window_days < 2 or self.refit_frequency_days < 1:
-            raise ValueError("Formation and refit windows must be positive.")
+        if self.formation_window_days < 20 or self.refit_frequency_days < 1:
+            raise ValueError("Formation and refit windows must be at least 20 and positive.")
         if self.multiple_testing_method != "benjamini_hochberg":
             raise ValueError("Only benjamini_hochberg multiple-testing correction is supported.")
 
@@ -94,12 +95,33 @@ class EvaluationConfig:
     report_gross_and_net: bool = True
     risk_free_rate_annual: float = 0.0
     annualization_days: int = 252
+    train_end: str | None = None
+    test_start: str | None = None
+    test_end: str | None = None
 
     def __post_init__(self) -> None:
         if self.split_method != "chronological":
             raise ValueError("Only chronological evaluation splits are supported.")
         if self.annualization_days < 1:
             raise ValueError("annualization_days must be at least 1.")
+        dates: dict[str, date] = {}
+        for name in ("train_end", "test_start", "test_end"):
+            value = getattr(self, name)
+            if value is None:
+                continue
+            try:
+                parsed = date.fromisoformat(value)
+            except ValueError as error:
+                raise ValueError(f"{name} must use YYYY-MM-DD format.") from error
+            if parsed.isoformat() != value:
+                raise ValueError(f"{name} must use YYYY-MM-DD format.")
+            dates[name] = parsed
+        if "train_end" in dates and "test_start" in dates:
+            if dates["train_end"] >= dates["test_start"]:
+                raise ValueError("test_start must be later than train_end.")
+        if "test_end" in dates and "test_start" in dates:
+            if dates["test_end"] < dates["test_start"]:
+                raise ValueError("test_end cannot be earlier than test_start.")
 
 
 @dataclass(frozen=True)
@@ -112,6 +134,10 @@ class ExperimentConfig:
     evaluation: EvaluationConfig = EvaluationConfig()
 
     def __post_init__(self) -> None:
+        if any(not isinstance(symbol, str) for symbol in self.universe):
+            raise ValueError("Universe symbols must be strings.")
+        if self.screening.formation_window_days < self.data.min_observations:
+            raise ValueError("formation_window_days cannot be below data.min_observations.")
         normalized = tuple(symbol.strip().upper() for symbol in self.universe)
         if any(not symbol for symbol in normalized):
             raise ValueError("Universe symbols cannot be empty.")

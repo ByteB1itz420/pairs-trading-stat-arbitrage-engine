@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pairs_trading.config import ExperimentConfig, SignalConfig, load_config
+from pairs_trading.config import EvaluationConfig, ExperimentConfig, SignalConfig, load_config
 
 
 def test_baseline_config_loads_with_validated_defaults() -> None:
@@ -31,3 +31,8 @@ def test_unknown_configuration_keys_are_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="Unknown keys"):
         load_config(config_path)
+
+
+def test_evaluation_dates_must_be_chronological() -> None:
+    with pytest.raises(ValueError, match="later than train_end"):
+        EvaluationConfig(train_end="2025-01-02", test_start="2025-01-02")

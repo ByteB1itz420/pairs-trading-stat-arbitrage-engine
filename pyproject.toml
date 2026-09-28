@@ -12,8 +12,11 @@ dependencies = [
     "numpy>=1.26",
     "pandas>=2.1",
     "PyYAML>=6.0",
-    "statsmodels>=0.14",
+    "statsmodels>=0.15",
 ]
+
+[project.scripts]
+pairs-trading = "pairs_trading.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]

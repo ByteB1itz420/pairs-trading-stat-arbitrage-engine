@@ -2,7 +2,15 @@ import numpy as np
 import pandas as pd
 
 from pairs_trading.backtest.engine import run_backtest
-from pairs_trading.config import ExecutionConfig, SignalConfig
+from pairs_trading.cli import run_experiment
+from pairs_trading.config import (
+    DataConfig,
+    EvaluationConfig,
+    ExperimentConfig,
+    ExecutionConfig,
+    ScreeningConfig,
+    SignalConfig,
+)
 from pairs_trading.data.validation import validate_market_data
 from pairs_trading.research.cointegration import analyze_pair
 
@@ -100,3 +108,115 @@ def test_open_position_is_liquidated_at_end_of_data() -> None:
     assert result.trades[0].exit_reason == "end_of_data"
     assert result.trades[0].exit_timestamp == market.adjusted_close.index[-1]
     assert not result.cancelled_orders
+
+
+def test_configured_experiment_runs_training_screening_and_exports_outputs(
+    tmp_path,
+) -> None:
+    residuals = [
+        0.0,
+        0.0002,
+        0.0003,
+        0.0001,
+        0.02,
+        0.015,
+        0.009,
+        0.0005,
+        0.0,
+        0.0001,
+        0.0002,
+    ]
+    market, _, start = market_fixture(residuals)
+    csv_path = tmp_path / "prices.csv"
+    rows = [
+        {
+            "timestamp": timestamp,
+            "symbol": symbol,
+            "adjusted_close": market.adjusted_close.loc[timestamp, symbol],
+            "open": market.open.loc[timestamp, symbol],
+        }
+        for timestamp in market.adjusted_close.index
+        for symbol in market.adjusted_close.columns
+    ]
+    pd.DataFrame(rows).to_csv(csv_path, index=False)
+    config = ExperimentConfig(
+        universe=("A", "B"),
+        data=DataConfig(min_observations=50, path=str(csv_path)),
+        screening=ScreeningConfig(
+            formation_window_days=100,
+            refit_frequency_days=21,
+        ),
+        signals=SignalConfig(
+            zscore_window_days=5,
+            entry_threshold=1.5,
+            exit_threshold=0.2,
+            stop_threshold=3,
+            max_holding_days=10,
+        ),
+        execution=ExecutionConfig(initial_capital=10_000),
+        evaluation=EvaluationConfig(
+            train_end=(start - pd.offsets.BDay(1)).date().isoformat(),
+            test_start=start.date().isoformat(),
+        ),
+    )
+
+    pair, metrics = run_experiment(config, tmp_path / "results")
+
+    assert (pair.symbol_a, pair.symbol_b) == ("A", "B")
+    assert metrics["trade_count"] == 1
+    for filename in (
+        "pair_screening.csv",
+        "experiment_config.yaml",
+        "equity_curve.csv",
+        "fills.csv",
+        "trades.csv",
+        "signals.csv",
+        "metrics.json",
+        "diagnostics.png",
+        "pair_refits.csv",
+    ):
+        assert (tmp_path / "results" / filename).is_file()
+
+
+def test_walk_forward_refits_are_trailing_and_frozen_during_open_trades() -> None:
+    residuals = [
+        0.0,
+        0.0002,
+        0.0003,
+        0.0001,
+        0.02,
+        0.015,
+        0.009,
+        0.0005,
+        0.0,
+        0.0001,
+        0.0002,
+    ]
+    market, pair, start = market_fixture(residuals)
+
+    result = run_backtest(
+        market,
+        pair,
+        SignalConfig(
+            zscore_window_days=5,
+            entry_threshold=1.5,
+            exit_threshold=0.2,
+            stop_threshold=3.0,
+            max_holding_days=10,
+        ),
+        ExecutionConfig(initial_capital=10_000),
+        start_date=start,
+        refit_frequency_days=2,
+        formation_window_days=100,
+        min_refit_observations=50,
+    )
+
+    assert result.refits
+    assert all(refit.timestamp == refit.lookback_end for refit in result.refits)
+    assert all(refit.observations <= 100 for refit in result.refits)
+    assert all(refit.timestamp >= start for refit in result.refits)
+    assert all(
+        not trade.entry_timestamp < refit.timestamp < trade.exit_timestamp
+        for trade in result.trades
+        for refit in result.refits
+    )

@@ -34,3 +34,7 @@ evaluation:
   report_gross_and_net: true
   risk_free_rate_annual: 0.0
   annualization_days: 252
+  # Set these to the actual chronological data boundaries before running.
+  train_end: null
+  test_start: null
+  test_end: null
