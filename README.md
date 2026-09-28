@@ -4,6 +4,8 @@ A modular Python research and event-driven backtesting engine for cointegration-
 
 > **Status:** Initial implementation is available. This is a single-pair research simulator, not a live trading system or a claim of profitability.
 
+See [status.md](./status.md) for implementation progress and confirmed bug findings, and [plan.md](./plan.md) for remaining bug-audit and website-deployment tasks.
+
 ## UML architecture
 
 ```mermaid
