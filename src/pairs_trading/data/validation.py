@@ -52,9 +52,14 @@ def validate_market_data(
     if frame.duplicated(["timestamp", "symbol"]).any():
         raise ValueError("Market data contains duplicate timestamp/symbol observations.")
 
+    if "open" in frame.columns and "adjusted_open" in frame.columns:
+        raise ValueError("Choose adjusted_open or legacy open, not both.")
+    # adjusted_open is explicit; legacy open remains for API compatibility but must
+    # be supplied on the same adjustment basis by its caller.
+    open_field = "adjusted_open" if "adjusted_open" in frame.columns else "open"
     numeric_fields = ["adjusted_close"]
-    if "open" in frame.columns:
-        numeric_fields.append("open")
+    if open_field in frame.columns:
+        numeric_fields.append(open_field)
     for field in numeric_fields:
         frame[field] = pd.to_numeric(frame[field], errors="raise")
         present = frame[field].dropna()
@@ -72,8 +77,8 @@ def validate_market_data(
         raise ValueError(f"Insufficient adjusted-close history: {symbols}.")
 
     open_prices: pd.DataFrame | None = None
-    if "open" in frame.columns:
-        open_prices = frame.pivot(index="timestamp", columns="symbol", values="open").sort_index()
+    if open_field in frame.columns:
+        open_prices = frame.pivot(index="timestamp", columns="symbol", values=open_field).sort_index()
         open_prices = open_prices.reindex(index=close.index, columns=close.columns)
         open_prices.columns.name = None
 
