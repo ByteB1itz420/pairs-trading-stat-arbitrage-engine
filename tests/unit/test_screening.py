@@ -28,3 +28,26 @@ def test_formation_window_is_calendar_sessions_before_pair_alignment(monkeypatch
     assert len(candidates) == 1
     assert candidates[0].observations == 19
     assert candidates[0].eligible is False
+
+
+def test_constant_pair_is_excluded_without_aborting_other_candidates() -> None:
+    """Degenerate prices should not crash a multi-pair research screen."""
+    import numpy as np
+    import pandas as pd
+    from pairs_trading.research.screening import screen_pairs
+
+    rng = np.random.default_rng(37)
+    dates = pd.bdate_range("2020-01-01", periods=120)
+    steps = rng.normal(0, 0.01, len(dates))
+    prices = pd.DataFrame(
+        {"A": np.full(len(dates), 100.0),
+         "B": np.exp(4 + np.cumsum(steps)),
+         "C": np.exp(4.2 + np.cumsum(steps) + rng.normal(0, 0.003, len(dates)))},
+        index=dates,
+    )
+    result = screen_pairs(prices, formation_window_days=120, min_observations=100)
+    assert len(result) == 3
+    constant_pairs = [pair for pair in result if "A" in (pair.symbol_a, pair.symbol_b)]
+    assert len(constant_pairs) == 2
+    assert all(not pair.eligible and "constant" in pair.exclusion_reason for pair in constant_pairs)
+    assert next(pair for pair in result if (pair.symbol_a, pair.symbol_b) == ("B", "C")).eligible
