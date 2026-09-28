@@ -1,0 +1,39 @@
+# PRE-REGISTERED before downloading data or running any real-data screen.
+# Original repository revision: 6f172d078376fb838d3c9862d15ac3a2343de7aa
+# Selection: screen every pair on formation history only, BH-adjust p-values,
+# choose lowest adjusted p-value; no passing pair = cash/no trade.
+# Validation is diagnostic only: never change parameters based on it.
+# Test 2023-2025 evaluated once under this exact specification.
+source: Yahoo Finance via yfinance 1.7.0
+retrieval_date_utc: '2026-09-28'
+start_inclusive: '2017-01-01'
+end_exclusive: '2026-01-01'
+frequency: '1d'
+auto_adjust: true
+universe: [XOM, CVX, COP, JPM, BAC, WFC]
+initial_capital: 100000
+formation_window_days: 252
+min_observations: 252
+engle_granger_significance: 0.05
+adf_significance: 0.05
+multiple_testing_method: benjamini_hochberg
+refit_frequency_days: 21
+zscore_window_days: 60
+entry_threshold: 2.0
+exit_threshold: 0.5
+stop_threshold: 4.0
+max_holding_days: 30
+commission_bps_per_side: 2.0
+slippage_bps_per_side: 5.0
+annual_borrow_rate: 0.0
+stress:
+  transaction_cost_multipliers: [1, 2, 3]
+  annual_borrow_rates: [0.0, 0.03, 0.08]
+selection_training: ['2017-01-01', '2020-12-31']
+validation: ['2021-01-01', '2022-12-30']
+untouched_test: ['2023-01-01', '2025-12-31']
+walk_forward:
+  - {train_end: '2019-12-31', evaluation_start: '2020-01-01', evaluation_end: '2020-12-31'}
+  - {train_end: '2020-12-31', evaluation_start: '2021-01-01', evaluation_end: '2021-12-31'}
+  - {train_end: '2021-12-31', evaluation_start: '2022-01-01', evaluation_end: '2022-12-30'}
+benchmark: [cash, equal_weight_buy_and_hold_universe]
