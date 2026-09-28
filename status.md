@@ -2,7 +2,11 @@
 
 **Updated:** 2026-09-29  
 **Repository:** [pairs-trading-stat-arbitrage-engine](https://github.com/ByteB1itz420/pairs-trading-stat-arbitrage-engine)  
-**State:** Local research engine, redesigned Streamlit workbench, Netlify/Vercel static frontend, and Railway API are implemented and locally testable. Cloud services have not been deployed because their CLIs are not installed or authenticated in this environment.
+**State:** Local research engine and redesigned Streamlit workbench are complete. The static frontend is live on Vercel and the Python backtest API is live on Railway.
+
+- **Vercel:** https://site-tan-nine-69.vercel.app
+- **Railway health:** https://pairs-trading-api-production.up.railway.app/healthz
+- **Railway API docs:** https://pairs-trading-api-production.up.railway.app/docs
 
 ## What is implemented
 
@@ -39,8 +43,7 @@ The audit is ongoing; these are the confirmed reproducible defects found and fix
 - Extend from one selected pair per run to portfolio-level capital allocation, pair overlap, leverage, and exposure controls.
 - Add borrow availability, margin rules, realistic partial fills, and market-impact modeling before interpreting results as executable performance.
 - Perform the broader targeted bug-audit task described in the next section of [plan.md](./plan.md).
-- Deploy the static site through either Vercel or Netlify; both configs are ready, but neither provider CLI is installed or authenticated.
-- Deploy the Python API on Railway, set `API_TOKEN` and the exact `CORS_ORIGINS`, then smoke-test the API health and browser-to-backend request.
+- Configure GitHub auto-deploy for Vercel and Railway; the current live deployments were uploaded from their authenticated CLI sessions.
 - Add stronger rate limiting/abuse monitoring and review account quotas before broad public promotion.
 - **Why data appeared not to load:** neither UI auto-downloads prices. Streamlit uses generated synthetic data until CSV selection; the static site starts with a synthetic business-day demo. Chart CSVs need `timestamp`, `symbol`, and `adjusted_close`; a Python backtest additionally requires valid `open` values. Browser-local data is sent to Railway only after pressing **Screen & backtest**.
 
@@ -82,9 +85,14 @@ python -m pairs_trading --config configs/baseline.yaml --output results/baseline
 - At a 390-pixel viewport, all charts and the API panel/results fit without horizontal overflow (375-pixel document width).
 - `node --check site/app.js`, Vercel/Railway JSON parsing, `git diff --check`, `pip check`, and Pylance API diagnostics passed.
 - MP4 verified as H.264 at 1280×720, 10.97 seconds, 203 KB.
+- Production Vercel responds HTTP 200 over HTTPS; the website defaults to the Railway API base URL.
+- Railway health returns `{"status":"ok"}`. Startup logs showed Railway assigned port 8080, so the public service domain was routed to 8080 instead of 8000.
+- CORS preflight from the Vercel production origin succeeds with `X-API-Key` allowed.
+- A valid production request without the API key returns HTTP 401. With the API key retrieved in-process from Railway (never printed), a production backtest completed HTTP 200 over 40 out-of-sample sessions and returned 2 synthetic trades.
+- The newest default API URL and live-deployment documentation still require a commit, push, and Vercel redeploy.
 
 No real market data was used for performance claims.
 
 ## Cloud deployment access
 
-The static and Railway configurations are prepared, but deployment is waiting for authenticated provider access. The current environment reports no installed `vercel`, `netlify`, or `railway` executable. Use each provider's CLI login locally or connect the repository through their authenticated dashboards; never paste credentials into chat or commit them.
+The user authorized Vercel and Railway CLI sessions. The API key remains only in Railway service variables; retrieve it through Railway when running a backtest on the public page. Never paste credentials into chat or commit them. Supabase is not configured or needed: the API is stateless and does not persist uploaded data or results.

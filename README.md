@@ -2,7 +2,7 @@
 
 A modular Python research and event-driven backtesting engine for cointegration-based pairs strategies.
 
-> **Status:** Local research engine, optional Railway API, and static frontend configurations are available. Cloud deployment still requires account access. This is a research simulator, not a live trading system or a claim of profitability.
+> **Status:** Static frontend is live on Vercel and the stateless backtest API is live on Railway. This is a research simulator, not a live trading system or a claim of profitability.
 
 See [status.md](./status.md) for implementation progress and confirmed bug findings, and [plan.md](./plan.md) for remaining bug-audit and website-deployment tasks.
 
@@ -138,6 +138,14 @@ The responsive static explorer in [`site/`](./site/) supports both Netlify and V
 
 Import this repository on either platform and deploy the `main` branch from the repository root. The browser generates a deterministic business-day demo or reads a user-selected CSV, then draws adjusted prices, rebased prices, a log-price spread, and rolling z-scores. Those charts are calculated locally. A Python backtest is only sent after the user enters the Railway API URL (and API key if configured) and presses **Screen & backtest**.
 
+### Live deployment
+
+- **Web app:** [https://site-tan-nine-69.vercel.app](https://site-tan-nine-69.vercel.app)
+- **Railway API health:** [https://pairs-trading-api-production.up.railway.app/healthz](https://pairs-trading-api-production.up.railway.app/healthz)
+- **API documentation:** [https://pairs-trading-api-production.up.railway.app/docs](https://pairs-trading-api-production.up.railway.app/docs)
+
+The Vercel frontend defaults to the deployed Railway API. Backtests require the API key configured as `API_TOKEN` in Railway: retrieve it through the authenticated Railway account dashboard/CLI and enter it into the page's password field. It is not stored in browser storage or this repository. If this key is rotated, update the Railway variable and provide the replacement in the web form. The live Vercel and Railway deployments were uploaded from their respective local CLI sessions; GitHub repository auto-deploy integration was not established, so subsequent source changes must be deployed from the provider CLI or their dashboards.
+
 ### Run the Railway API locally
 
 Install the backend extra and start the HTTP service:
@@ -176,7 +184,7 @@ Open `http://localhost:4173`. The page has no build step and does not load chart
 
 ### Deployment state
 
-The static-host and Railway configurations are prepared, but no cloud service has been deployed yet. Deployment requires authenticated Vercel or Netlify and Railway accounts. Those CLIs are not installed or authenticated in the current environment; no credentials are stored in this repository.
+The production frontend and API are live at the URLs above. The Railway health endpoint, configured Vercel-origin CORS, required API key, and a complete authenticated out-of-sample request have been verified. Upload deployment is CLI-based, not configured as automatic GitHub deployment.
 
 ### Why data may appear not to load
 

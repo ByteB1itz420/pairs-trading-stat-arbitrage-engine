@@ -361,12 +361,12 @@ This follows successful local-workbench testing; the local Streamlit workbench i
 
 Remaining deployment tasks:
 
-1. Authenticate with either Vercel or Netlify, import the GitHub repository, and deploy the production branch.
-2. Verify the assigned deployment URL, HTTPS, headers, and mobile/CSV behavior on the actual host.
-3. Set the deployed frontend's exact origin in Railway `CORS_ORIGINS`.
+1. Configure GitHub auto-deploy for the Vercel project; the current site was deployed manually because the repository app integration was not available.
+2. Verify future production updates after every deploy and keep the generated live URLs current in the README.
+3. Maintain the exact deployed frontend origin in Railway `CORS_ORIGINS`.
 4. Keep strict CSV parsing and request limits; do not persist user price data or log API keys.
-5. Add deploy-preview and post-deploy smoke checks once the static site is connected to an account.
-- **Acceptance:** an account owner publishes the configured static site, verifies the live URL, and passes mobile, CSV, and explicit-backend-submit smoke checks.
+5. Add deploy-preview checks once GitHub integration is available.
+- **Acceptance:** the production Vercel URL is reachable over HTTPS and mobile/CSV behavior passes; the first live deployment has been verified.
 
 ### Task C — Deploy and operate the Railway backtest API
 
@@ -374,12 +374,10 @@ Remaining deployment tasks:
 
 Remaining deployment and operations tasks:
 
-1. Authenticate Railway, create a service from the repository root, and deploy the detected Dockerfile.
-2. Set a unique `API_TOKEN` and the exact published site origin(s) in `CORS_ORIGINS`; never expose or commit the token.
-3. Generate an HTTPS Railway domain and configure the website's API URL.
-4. Verify `/healthz`, a successful out-of-sample API call, rejection of an incorrect API key, and CORS from the published site.
-5. Review account-level usage/billing limits and add stronger rate limiting/abuse monitoring before broad public promotion.
-- **Acceptance:** Railway reports a healthy deployment; the production UI completes one data-upload backtest through that API, rejects unauthenticated calls when a token is configured, and does not persist uploaded rows.
+1. Configure GitHub auto-deploy to Railway; the initial API was uploaded from the authenticated CLI.
+2. Review account-level usage/billing limits and add stronger rate limiting/abuse monitoring before broad public promotion.
+3. Rotate the Railway API key if it needs to be shared with another authorized user; supply it via the password field without putting it into the frontend bundle.
+- **Acceptance:** Railway health, CORS, API-key enforcement, and one successful 40-session out-of-sample production request were verified; uploaded market rows are not persisted.
 
 ### Task D — Provide a short branded product tour
 

@@ -536,7 +536,8 @@ function initialize() {
   });
   $("#symbol-b").addEventListener("change", renderWorkspace);
   $("#zscore-window").addEventListener("change", renderWorkspace);
-  $("#api-url").value = sessionStorage.getItem("pairwise-api-url") || "";
+  $("#api-url").value = sessionStorage.getItem("pairwise-api-url")
+    || "https://pairs-trading-api-production.up.railway.app";
   $("#run-backtest").addEventListener("click", runPythonBacktest);
   window.addEventListener("resize", () => {
     if (!$("#charts").hidden) renderWorkspace();
