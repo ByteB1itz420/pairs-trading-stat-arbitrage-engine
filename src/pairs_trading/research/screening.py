@@ -62,17 +62,16 @@ def screen_pairs(
     results: list[PairAnalysis] = []
     for symbol_a, symbol_b in combinations(candidates, 2):
         pair = formation.loc[:, [symbol_a, symbol_b]].dropna(how="any")
+        exclusion_reason = None
         if len(pair) < min_observations:
+            exclusion_reason = f"requires {min_observations} aligned observations in formation window"
+        elif any(np.log(pair[symbol]).std() < 1e-10 for symbol in (symbol_a, symbol_b)):
+            exclusion_reason = "constant price series in formation window"
+        if exclusion_reason is not None:
             results.append(
-                PairAnalysis(
-                    symbol_a=symbol_a,
-                    symbol_b=symbol_b,
-                    observations=len(pair),
-                    eligible=False,
-                    exclusion_reason=(
-                        f"requires {min_observations} aligned observations in formation window"
-                    ),
-                )
+                PairAnalysis(symbol_a=symbol_a, symbol_b=symbol_b,
+                             observations=len(pair), eligible=False,
+                             exclusion_reason=exclusion_reason)
             )
             continue
         results.append(
