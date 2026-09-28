@@ -1,0 +1,33 @@
+from pathlib import Path
+
+import pytest
+
+from pairs_trading.config import ExperimentConfig, SignalConfig, load_config
+
+
+def test_baseline_config_loads_with_validated_defaults() -> None:
+    config = load_config(Path(__file__).parents[2] / "configs" / "baseline.yaml")
+
+    assert config.data.min_observations == 252
+    assert config.signals.entry_threshold == 2.0
+    assert config.execution.fill_time == "next_open"
+
+
+def test_universe_is_normalized_and_duplicate_symbols_are_rejected() -> None:
+    assert ExperimentConfig(universe=(" aapl ", "msft")).universe == ("AAPL", "MSFT")
+
+    with pytest.raises(ValueError, match="unique"):
+        ExperimentConfig(universe=("AAPL", "aapl"))
+
+
+def test_invalid_signal_thresholds_are_rejected() -> None:
+    with pytest.raises(ValueError, match="below entry_threshold"):
+        SignalConfig(entry_threshold=1.0, exit_threshold=1.0)
+
+
+def test_unknown_configuration_keys_are_rejected(tmp_path: Path) -> None:
+    config_path = tmp_path / "invalid.yaml"
+    config_path.write_text("signals:\n  enter_threshold: 2\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Unknown keys"):
+        load_config(config_path)
