@@ -3,6 +3,12 @@
 **Project window:** May 2026 – July 2026  
 **Goal:** Build a modular Python research and backtesting engine for identifying candidate cointegrated asset pairs, generating rolling z-score signals, and evaluating those signals in a cost-aware, event-driven, out-of-sample simulation.
 
+## Current implementation status
+
+The repository now has an installable Python package, YAML configuration, CSV price validation, OLS/Engle–Granger/ADF screening with Benjamini–Hochberg correction, rolling signals, a single-pair event-driven next-open simulator, scheduled trailing OLS refits while flat, transaction/borrow costs, a chronological training/test runner, performance metrics, CSV/JSON exports, plots, and unit/integration tests. Run `python -m pytest -q` and consult the README for setup and the configured experiment command.
+
+The initial release intentionally does not claim every research-hardening item in this roadmap is complete. Explicit follow-up work includes a separate validation split and parameter-sensitivity workflow, point-in-time survivorship/delisting data, and portfolio-level handling for multiple overlapping pairs. Use a frozen, untouched test period for any reported strategy result.
+
 ## 1. Project outcomes
 
 At completion, the project should provide:
@@ -66,6 +72,7 @@ pairs-trading-stat-arbitrage-engine/
 │   └── processed/           # ignored by version control
 ├── src/
 │   └── pairs_trading/
+│       ├── cli.py
 │       ├── config.py
 │       ├── data/
 │       │   ├── loader.py
@@ -82,7 +89,8 @@ pairs-trading-stat-arbitrage-engine/
 │       │   ├── execution.py
 │       │   └── engine.py
 │       └── reporting/
-│           └── metrics.py
+│           ├── metrics.py
+│           └── outputs.py
 ├── tests/
 │   ├── unit/
 │   └── integration/
