@@ -56,10 +56,12 @@ def screen_pairs(
     if missing:
         raise ValueError(f"Unknown screening symbols: {', '.join(sorted(missing))}.")
 
+    # Fix the shared formation dates first. Dropping a missing pair observation
+    # must not extend that pair's lookback farther into the past.
+    formation = adjusted_close.tail(formation_window_days)
     results: list[PairAnalysis] = []
     for symbol_a, symbol_b in combinations(candidates, 2):
-        pair = adjusted_close.loc[:, [symbol_a, symbol_b]].dropna(how="any")
-        pair = pair.tail(formation_window_days)
+        pair = formation.loc[:, [symbol_a, symbol_b]].dropna(how="any")
         if len(pair) < min_observations:
             results.append(
                 PairAnalysis(
