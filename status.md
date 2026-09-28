@@ -2,7 +2,7 @@
 
 **Updated:** 2026-09-29  
 **Repository:** [pairs-trading-stat-arbitrage-engine](https://github.com/ByteB1itz420/pairs-trading-stat-arbitrage-engine)  
-**State:** Local research engine and visual test workbench implemented; no production website deployed.
+**State:** Local research engine, redesigned Streamlit workbench, Netlify/Vercel static frontend, and Railway API are implemented and locally testable. Cloud services have not been deployed because their CLIs are not installed or authenticated in this environment.
 
 ## What is implemented
 
@@ -15,6 +15,12 @@
 - Net/gross performance metrics, a cash baseline, CSV/JSON exports, and diagnostic plots.
 - CLI experiment runner and a local Streamlit test workbench.
 - Deterministic synthetic cointegrated data for trying the full flow without downloading market data.
+- Responsive static Netlify/Vercel website with client-side CSV loading, four SVG charts, and an explicit optional API-backtest action.
+- FastAPI `/healthz` and `/api/v1/backtest` endpoints for training-only Engle–Granger screening and cost-aware out-of-sample simulation.
+- Railway `Dockerfile`/configuration, request body and row limits, optional API-token checks, allowlisted CORS, and no market-data file persistence.
+- Vercel static output config, in addition to the Netlify publish configuration.
+- Short branded 720p MP4 product tour and SVG storyboard linked from the README. The requested `brag` CLI was unavailable; the video was rendered with local FFmpeg.
+- Synthetic static-site demo uses consecutive UTC weekdays, matching its daily-session chart labels.
 - Unit and integration tests for the statistical core, signal rules, accounting, CLI workflow, refits, and synthetic demo.
 
 ## Confirmed bug found and fixed
@@ -33,16 +39,19 @@ The audit is ongoing; these are the confirmed reproducible defects found and fix
 - Extend from one selected pair per run to portfolio-level capital allocation, pair overlap, leverage, and exposure controls.
 - Add borrow availability, margin rules, realistic partial fills, and market-impact modeling before interpreting results as executable performance.
 - Perform the broader targeted bug-audit task described in the next section of [plan.md](./plan.md).
-- Design, secure, deploy, and smoke-test a production website only after local-workbench feedback and explicit hosting/privacy decisions. The Streamlit app is local-only.
+- Deploy the static site through either Vercel or Netlify; both configs are ready, but neither provider CLI is installed or authenticated.
+- Deploy the Python API on Railway, set `API_TOKEN` and the exact `CORS_ORIGINS`, then smoke-test the API health and browser-to-backend request.
+- Add stronger rate limiting/abuse monitoring and review account quotas before broad public promotion.
+- **Why data appeared not to load:** neither UI auto-downloads prices. Streamlit uses generated synthetic data until CSV selection; the static site starts with a synthetic business-day demo. Chart CSVs need `timestamp`, `symbol`, and `adjusted_close`; a Python backtest additionally requires valid `open` values. Browser-local data is sent to Railway only after pressing **Screen & backtest**.
 
 ## Run the project locally
 
-Install development and dashboard dependencies from the repository root:
+Install development, dashboard, and API dependencies from the repository root:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev,plots,dashboard]"
+python -m pip install -e ".[dev,plots,dashboard,backend]"
 ```
 
 Run all tests:
@@ -67,11 +76,15 @@ python -m pairs_trading --config configs/baseline.yaml --output results/baseline
 
 ## Verification performed for this update
 
-- Full suite: **35 unit/integration/UI tests pass** after the dashboard and regression tests were added.
-- Streamlit `AppTest` rendered the workbench, ran the synthetic test, and displayed all four headline metrics without app exceptions.
-- Browser verification: the local dashboard displayed screening results, 3 synthetic-demo trades, gross/net curves, drawdown, and downloadable artifacts. The displayed synthetic results are a UI smoke test, not evidence of strategy performance.
-- Regression checks: refitted hedge ratios drive actual execution sizing; `NaN` and infinite configuration values are rejected.
-- Package dependency check: `pip check` found no broken requirements.
-- Local UI dependency: Streamlit installed and version command verified.
+- Full Python suite: 42 tests passed.
+- API coverage: deterministic cointegrated pair and chronological test split, API-key rejection when configured, health response, and oversized-body rejection.
+- Live browser-to-local-API smoke test passed on generated data: Engle–Granger p-value `0.0000990`, 55 held-out sessions, and 3 completed trades.
+- At a 390-pixel viewport, all charts and the API panel/results fit without horizontal overflow (375-pixel document width).
+- `node --check site/app.js`, Vercel/Railway JSON parsing, `git diff --check`, `pip check`, and Pylance API diagnostics passed.
+- MP4 verified as H.264 at 1280×720, 10.97 seconds, 203 KB.
 
 No real market data was used for performance claims.
+
+## Cloud deployment access
+
+The static and Railway configurations are prepared, but deployment is waiting for authenticated provider access. The current environment reports no installed `vercel`, `netlify`, or `railway` executable. Use each provider's CLI login locally or connect the repository through their authenticated dashboards; never paste credentials into chat or commit them.

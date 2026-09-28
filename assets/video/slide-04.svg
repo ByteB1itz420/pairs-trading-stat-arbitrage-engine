@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f5f7f4"/>
+  <rect x="58" y="48" width="1164" height="624" rx="34" fill="#19332f"/>
+  <rect x="96" y="82" width="44" height="44" rx="14" fill="#087f65"/>
+  <text x="110" y="112" fill="#fff" font-family="Arial,sans-serif" font-size="26" font-weight="700">P</text>
+  <text x="154" y="113" fill="#fff" font-family="Arial,sans-serif" font-size="27" font-weight="700">pairwise<tspan fill="#66c1a2">.</tspan></text>
+  <text x="98" y="202" fill="#8ad4b7" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2">03 / BACKTEST</text>
+  <text x="98" y="258" fill="#fff" font-family="Arial,sans-serif" font-size="44" font-weight="700">Simulate with costs. Learn out of sample.</text>
+  <text x="99" y="302" fill="#c2d2ca" font-family="Arial,sans-serif" font-size="20">Close-time signals. Next-open fills. Net-of-cost results.</text>
+  <rect x="98" y="352" width="1080" height="190" rx="22" fill="#274640"/>
+  <path d="M139 494 C187 490 204 471 248 478 S316 492 357 459 S427 461 470 449 S544 471 589 441 S658 458 700 420 S773 438 814 402 S890 426 929 381 S1008 402 1048 376 S1113 393 1141 361" fill="none" stroke="#74c9a8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M140 511H1140" stroke="#60776d" stroke-width="2"/>
+  <text x="135" y="584" fill="#c2d2ca" font-family="Arial,sans-serif" font-size="17">Research software only · no live trading · no investment advice</text>
+  <text x="98" y="627" fill="#8ad4b7" font-family="Arial,sans-serif" font-size="18" font-weight="700">pairwise. · Statistical Arbitrage Lab</text>
+</svg>

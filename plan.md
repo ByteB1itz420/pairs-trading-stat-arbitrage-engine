@@ -5,7 +5,7 @@
 
 ## Current implementation status
 
-The repository now has an installable Python package, YAML configuration, CSV price validation, OLS/Engle–Granger/ADF screening with Benjamini–Hochberg correction, rolling signals, a single-pair event-driven next-open simulator, scheduled trailing OLS refits while flat, transaction/borrow costs, a chronological training/test runner, performance metrics, CSV/JSON exports, plots, a local Streamlit test workbench, and unit/integration tests. Run `python -m pytest -q` and consult the README for setup and the configured experiment command.
+The repository now has an installable Python package, YAML configuration, CSV price validation, OLS/Engle–Granger/ADF screening with Benjamini–Hochberg correction, rolling signals, a single-pair event-driven next-open simulator, scheduled trailing OLS refits while flat, transaction/borrow costs, a chronological training/test runner, performance metrics, CSV/JSON exports, plots, a local Streamlit test workbench, a bounded FastAPI backtest service, and unit/integration tests. The static browser app can call that API only after an explicit user action. Run `python -m pytest -q` and consult the README for local setup and deployment instructions.
 
 The initial release intentionally does not claim every research-hardening item in this roadmap is complete. Explicit follow-up work includes a separate validation split and parameter-sensitivity workflow, point-in-time survivorship/delisting data, and portfolio-level handling for multiple overlapping pairs. Use a frozen, untouched test period for any reported strategy result.
 
@@ -353,14 +353,37 @@ Before using these defaults, verify that they match the data frequency and chose
 - **Already found and fixed:** non-finite values (`NaN` and infinity) could pass configuration checks for strategy thresholds, costs, capital, and evaluation. Configuration now rejects them; parameterized tests cover the affected settings.
 - **Acceptance:** no known reproducible high-severity defects remain; all confirmed findings are either fixed with regression coverage or explicitly recorded as open with a reproduction case.
 
-### Task B — Build and deploy a production-ready website
+### Task B — Build and deploy a responsive website
 
 This follows successful local-workbench testing; the local Streamlit workbench is not itself a production deployment.
 
-1. Confirm the intended hosting provider, access model, and whether uploaded data may leave the user's machine.
-2. Define the service boundary: web UI, API/job runner, configuration validation, result storage, and a stateless/isolated execution model.
-3. Add user-controlled data upload and deletion, strict size/type limits, non-executable data parsing, and no secret/data logging.
-4. Add authentication/authorization if private projects or saved results are supported; otherwise clearly specify the public/demo-only behavior.
-5. Add deploy configuration, health checks, dependency/build locking, automated deployment smoke tests, and an operational rollback procedure.
-6. Run representative synthetic and user-authorized datasets through the deployed build and compare its results to the local test suite.
-- **Acceptance:** a documented deployment can be reproduced from source, is reachable at the chosen host, passes health and end-to-end smoke tests, and has explicit privacy, retention, and failure behavior.
+**Implemented foundation:** `site/` is a responsive static Netlify/Vercel visual explorer with client-side CSV parsing and SVG charts. `netlify.toml` and `vercel.json` configure the static output. A separate Railway API can run the Python engine when a user explicitly submits the selected pair.
+
+Remaining deployment tasks:
+
+1. Authenticate with either Vercel or Netlify, import the GitHub repository, and deploy the production branch.
+2. Verify the assigned deployment URL, HTTPS, headers, and mobile/CSV behavior on the actual host.
+3. Set the deployed frontend's exact origin in Railway `CORS_ORIGINS`.
+4. Keep strict CSV parsing and request limits; do not persist user price data or log API keys.
+5. Add deploy-preview and post-deploy smoke checks once the static site is connected to an account.
+- **Acceptance:** an account owner publishes the configured static site, verifies the live URL, and passes mobile, CSV, and explicit-backend-submit smoke checks.
+
+### Task C — Deploy and operate the Railway backtest API
+
+**Implemented foundation:** `src/pairs_trading/api.py` provides `/healthz` and a chronological `/api/v1/backtest`; `Dockerfile` and `railway.json` configure the Railway container. The API screens only through the submitted training cutoff, rejects non-passing cointegration candidates without simulating them, limits requests to 8 MiB/40,000 rows, can enforce an `API_TOKEN`, and does not store inputs. The browser sends only the selected pair after an explicit user click.
+
+Remaining deployment and operations tasks:
+
+1. Authenticate Railway, create a service from the repository root, and deploy the detected Dockerfile.
+2. Set a unique `API_TOKEN` and the exact published site origin(s) in `CORS_ORIGINS`; never expose or commit the token.
+3. Generate an HTTPS Railway domain and configure the website's API URL.
+4. Verify `/healthz`, a successful out-of-sample API call, rejection of an incorrect API key, and CORS from the published site.
+5. Review account-level usage/billing limits and add stronger rate limiting/abuse monitoring before broad public promotion.
+- **Acceptance:** Railway reports a healthy deployment; the production UI completes one data-upload backtest through that API, rejects unauthenticated calls when a token is configured, and does not persist uploaded rows.
+
+### Task D — Provide a short branded product tour
+
+**Implemented foundation:** a silent 11-second 720p MP4 and SVG storyboard frames are checked into `assets/`; the README links the video with a clickable cover image.
+
+- Verify the encoded video and poster in the README after any visual refresh.
+- The requested `brag` CLI is not present in the current environment; the video was rendered with available local FFmpeg tooling instead.

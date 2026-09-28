@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta
+      name="description"
+      content="A private-by-default browser workspace for viewing pairs trading price data and research signals."
+    >
+    <title>Pairwise — Statistical Arbitrage Lab</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Pairwise home">
+        <span class="brand-mark" aria-hidden="true">P</span>
+        <span>pairwise<span class="brand-dot">.</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a class="nav-link" href="#workspace">Workspace</a>
+        <a class="nav-link" href="#how-data-works">How data works</a>
+        <a class="github-link" href="https://github.com/ByteB1itz420/pairs-trading-stat-arbitrage-engine" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="live-dot"></span> Research workspace</p>
+          <h1>See the relationship.<br><span>Test the thesis.</span></h1>
+          <p class="hero-description">
+            Explore paired price histories and rolling spread signals in a calm,
+            focused workspace. Your CSV stays in this browser.
+          </p>
+          <a class="button button-dark" href="#workspace">Open the workspace <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="art-orbit orbit-one"></div>
+          <div class="art-orbit orbit-two"></div>
+          <div class="art-card">
+            <span>ALPHA / BETA</span>
+            <strong>Spread signal</strong>
+            <svg viewBox="0 0 360 150" role="presentation">
+              <path d="M4 86 C24 82 23 44 48 52 S76 116 99 105 S125 38 148 47 S176 102 198 97 S226 51 248 61 S275 115 299 94 S332 48 356 55" fill="none" stroke="#07816a" stroke-width="4" stroke-linecap="round"/>
+              <path d="M4 108 H356 M4 42 H356" fill="none" stroke="#dce8df" stroke-width="1" stroke-dasharray="5 7"/>
+              <circle cx="248" cy="61" r="6" fill="#e87963"/>
+            </svg>
+            <div class="art-footer"><span>Rolling z-score</span><span class="art-value">−0.38</span></div>
+          </div>
+          <span class="art-spark spark-one">✳</span>
+          <span class="art-spark spark-two">✳</span>
+        </div>
+      </section>
+
+      <section class="workspace-section" id="workspace">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Your workspace</p>
+            <h2>Price explorer</h2>
+          </div>
+          <span class="privacy-pill"><span class="privacy-lock" aria-hidden="true">●</span> Charts local · API is opt-in</span>
+        </div>
+
+        <div class="workspace-card">
+          <div class="toolbar">
+            <div class="source-switch" role="group" aria-label="Choose a data source">
+              <button id="demo-button" class="source-button is-active" type="button">Try demo data</button>
+              <button id="upload-button" class="source-button" type="button">Open CSV</button>
+            </div>
+            <label class="upload-control" for="csv-file">
+              <span aria-hidden="true">＋</span> Choose price file
+              <input id="csv-file" type="file" accept=".csv,text/csv">
+            </label>
+          </div>
+
+          <div class="data-status" id="data-status" role="status" aria-live="polite">
+            <span class="status-icon" aria-hidden="true">i</span>
+            <span>Loading the synthetic example…</span>
+          </div>
+
+          <div class="dataset-summary" id="dataset-summary" hidden>
+            <div><span class="summary-label">Dataset</span><strong id="summary-name">Demo</strong></div>
+            <div><span class="summary-label">Rows</span><strong id="summary-rows">—</strong></div>
+            <div><span class="summary-label">Symbols</span><strong id="summary-symbols">—</strong></div>
+            <div><span class="summary-label">Date range</span><strong id="summary-range">—</strong></div>
+          </div>
+
+          <div class="pair-controls" id="pair-controls" hidden>
+            <label>First asset<select id="symbol-a"></select></label>
+            <span class="pair-link" aria-hidden="true">↔</span>
+            <label>Compare with<select id="symbol-b"></select></label>
+            <label class="window-control">Z-score window
+              <select id="zscore-window">
+                <option value="20">20 sessions</option>
+                <option value="40">40 sessions</option>
+                <option value="60" selected>60 sessions</option>
+                <option value="120">120 sessions</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="empty-state" id="empty-state">
+            <div class="empty-icon" aria-hidden="true">↗</div>
+            <h3>Your chart starts with data</h3>
+            <p>Try the generated example, or choose a CSV with timestamp, symbol, and adjusted_close columns.</p>
+            <button class="button button-green" id="empty-demo-button" type="button">Load demo prices</button>
+            <small>For the Python backtest, connect a Railway API and include an open column.</small>
+          </div>
+
+          <div class="charts" id="charts" hidden>
+            <article class="chart-card chart-wide">
+              <div class="chart-heading"><div><h3>Adjusted close</h3><p>Daily prices · original scale</p></div><span class="chart-index">01 / 04</span></div>
+              <div class="chart-frame"><svg id="price-chart" role="img" aria-label="Adjusted close line chart"></svg></div>
+              <div class="chart-legend" id="price-legend"></div>
+            </article>
+            <article class="chart-card">
+              <div class="chart-heading"><div><h3>Rebased performance</h3><p>Both series start at 100</p></div><span class="chart-index">02 / 04</span></div>
+              <div class="chart-frame"><svg id="rebased-chart" role="img" aria-label="Rebased price line chart"></svg></div>
+              <div class="chart-legend" id="rebased-legend"></div>
+            </article>
+            <article class="chart-card">
+              <div class="chart-heading"><div><h3>Log-price spread</h3><p>OLS residual · full available sample</p></div><span class="chart-index">03 / 04</span></div>
+              <div class="chart-frame"><svg id="spread-chart" role="img" aria-label="Log-price spread chart"></svg></div>
+              <div class="chart-caption" id="spread-summary">—</div>
+            </article>
+            <article class="chart-card chart-wide">
+              <div class="chart-heading"><div><h3>Rolling z-score</h3><p>Trailing window · visualization only, not a trade recommendation</p></div><span class="chart-index">04 / 04</span></div>
+              <div class="chart-frame"><svg id="zscore-chart" role="img" aria-label="Rolling z-score with reference levels"></svg></div>
+              <div class="chart-legend"><span><i class="legend-line green"></i>Z-score</span><span><i class="legend-line coral"></i>±2 reference</span></div>
+            </article>
+          </div>
+          <p class="chart-footnote" id="chart-footnote" hidden>Charts are calculated in this browser. To run the Python research engine, explicitly submit the selected pair below; only that pair's price rows are sent to the API and are not stored.</p>
+
+          <section class="backtest-panel" aria-labelledby="backtest-title">
+            <div class="backtest-heading">
+              <div><p class="eyebrow">Optional hosted engine</p><h3 id="backtest-title">Out-of-sample backtest</h3></div>
+              <span class="privacy-pill">Uploads only when you run</span>
+            </div>
+            <div class="backtest-controls">
+              <div class="backtest-api-fields">
+                <label for="api-url">Railway API base URL
+                  <input id="api-url" type="url" inputmode="url" placeholder="https://your-service.up.railway.app" autocomplete="url">
+                </label>
+                <label for="api-key">API key <span class="optional-label">if enabled</span>
+                  <input id="api-key" type="password" placeholder="Not saved" autocomplete="off">
+                </label>
+              </div>
+              <button id="run-backtest" class="button button-green" type="button">Screen &amp; backtest</button>
+            </div>
+            <p class="backtest-help">Uses a chronological 70/30 train/test split, Engle–Granger screening on training data, and next-open execution. Requires at least 100 training observations and valid <code>open</code> prices. Results are research output, not trading advice.</p>
+            <div id="backtest-status" class="backtest-status" role="status" aria-live="polite" hidden></div>
+            <div id="backtest-results" class="backtest-results" hidden>
+              <div id="backtest-metrics" class="backtest-metrics"></div>
+              <div class="chart-card backtest-equity">
+                <div class="chart-heading"><div><h3>Out-of-sample equity</h3><p>Net of simulated transaction costs</p></div></div>
+                <div class="chart-frame"><svg id="backtest-equity-chart" role="img" aria-label="Out-of-sample portfolio equity chart"></svg></div>
+              </div>
+              <p id="backtest-summary" class="chart-caption"></p>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="how-section" id="how-data-works">
+        <p class="eyebrow">No mystery loading</p>
+        <h2>Where the data comes from</h2>
+        <div class="how-grid">
+          <article><span class="step-number">01</span><h3>Choose a source</h3><p>The demo is generated in your browser. Real prices only load after you choose your own CSV.</p></article>
+          <article><span class="step-number">02</span><h3>Check the columns</h3><p>Use one row per asset and date with <code>timestamp</code>, <code>symbol</code>, positive <code>adjusted_close</code>, and <code>open</code> for backtests.</p></article>
+          <article><span class="step-number">03</span><h3>Choose what to send</h3><p>Charts stay local. Backtest rows are sent to your configured Railway API only after you press Screen &amp; backtest.</p></article>
+        </div>
+        <div class="engine-note">
+          <strong>Need the full backtest?</strong>
+          <span>Run the Python engine from the repository for Engle–Granger screening, transaction costs, and event-driven out-of-sample results.</span>
+          <a href="https://github.com/ByteB1itz420/pairs-trading-stat-arbitrage-engine#install" target="_blank" rel="noreferrer">Python setup guide ↗</a>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true">P</span><span>pairwise<span class="brand-dot">.</span></span></a>
+      <span>Research software only. No investment advice or live trading.</span>
+      <span>© 2026 Pairwise Lab</span>
+    </footer>
+  </body>
+</html>

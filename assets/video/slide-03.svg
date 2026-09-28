@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#f5f7f4"/>
+  <rect x="58" y="48" width="1164" height="624" rx="34" fill="#eaf3ed"/>
+  <rect x="96" y="82" width="44" height="44" rx="14" fill="#087f65"/>
+  <text x="110" y="112" fill="#fff" font-family="Arial,sans-serif" font-size="26" font-weight="700">P</text>
+  <text x="154" y="113" fill="#19332f" font-family="Arial,sans-serif" font-size="27" font-weight="700">pairwise<tspan fill="#087f65">.</tspan></text>
+  <text x="98" y="202" fill="#087f65" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2">02 / SCREEN</text>
+  <text x="98" y="254" fill="#19332f" font-family="Arial,sans-serif" font-size="42" font-weight="700">Test the relationship, not the story.</text>
+  <text x="99" y="294" fill="#75847e" font-family="Arial,sans-serif" font-size="20">Fit and screen on training data before evaluating a held-out period.</text>
+  <rect x="98" y="344" width="502" height="235" rx="20" fill="#fff"/>
+  <text x="130" y="391" fill="#819089" font-family="Arial,sans-serif" font-size="13" font-weight="700" letter-spacing="2">ILLUSTRATIVE TRAINING WINDOW</text>
+  <text x="130" y="444" fill="#19332f" font-family="Arial,sans-serif" font-size="23" font-weight="700">OLS hedge ratio</text>
+  <text x="530" y="444" fill="#087f65" font-family="Arial,sans-serif" font-size="23" font-weight="700">0.84</text>
+  <text x="130" y="493" fill="#19332f" font-family="Arial,sans-serif" font-size="23" font-weight="700">Engle–Granger p-value</text>
+  <text x="530" y="493" fill="#087f65" font-family="Arial,sans-serif" font-size="23" font-weight="700">0.012</text>
+  <text x="130" y="542" fill="#19332f" font-family="Arial,sans-serif" font-size="23" font-weight="700">ADF residual diagnostic</text>
+  <text x="530" y="542" fill="#087f65" font-family="Arial,sans-serif" font-size="23" font-weight="700">0.021</text>
+  <rect x="630" y="344" width="550" height="235" rx="20" fill="#19332f"/>
+  <text x="668" y="393" fill="#b5d9c8" font-family="Arial,sans-serif" font-size="14" font-weight="700" letter-spacing="2">CHRONOLOGICAL EVALUATION</text>
+  <line x1="694" y1="478" x2="1112" y2="478" stroke="#6e857b" stroke-width="3"/>
+  <rect x="694" y="442" width="230" height="73" rx="12" fill="#087f65"/>
+  <rect x="924" y="442" width="188" height="73" rx="12" fill="#e87963"/>
+  <text x="760" y="487" fill="#fff" font-family="Arial,sans-serif" font-size="19" font-weight="700">TRAIN</text>
+  <text x="976" y="487" fill="#fff" font-family="Arial,sans-serif" font-size="19" font-weight="700">TEST</text>
+  <text x="691" y="548" fill="#c3d2ca" font-family="Arial,sans-serif" font-size="15">No fitting on future observations.</text>
+</svg>
