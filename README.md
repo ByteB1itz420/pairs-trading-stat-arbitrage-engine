@@ -96,9 +96,10 @@ Provide your own properly licensed CSV at `data/raw/prices.csv`. The loader acce
 | `timestamp` | Yes | Daily observation date |
 | `symbol` | Yes | Asset symbol |
 | `adjusted_close` | Yes | Positive close adjusted for splits and distributions |
-| `open` | For backtests | Positive next-session execution open, adjusted on the same basis as close |
+| `adjusted_open` | For backtests | Positive next-session open adjusted on the same basis as `adjusted_close`; preferred explicit field |
+| `open` | Legacy alternative | Accepted for existing API/CSV clients, but the caller must ensure it is adjusted on the same basis as `adjusted_close` |
 
-There is intentionally no market-data download dependency, sample market data, or API credential in this repository. Missing observations are reported and never forward-filled. Invalid numeric values, duplicate symbol/date rows, non-positive prices, or insufficient history are rejected.
+The core package does not download market data or require an API credential. The separate, optional [real-data runner](experiments/run_real_data.py) uses yfinance for Yahoo daily adjusted prices; it is not part of the core install. Missing observations are reported and never forward-filled. Invalid numeric values, duplicate symbol/date rows, non-positive prices, or insufficient history are rejected.
 
 Before running the baseline, edit `configs/baseline.yaml`:
 
@@ -114,6 +115,19 @@ python -m pairs_trading --config configs/baseline.yaml --output results/baseline
 ```
 
 The command screens using only data through `train_end`, applies the predeclared Engle–Granger significance level and false-discovery-rate correction, chooses the most significant passing pair, and backtests from `test_start` through `test_end` (or the end of available data). It fails explicitly if no pair passes or the requested data is incomplete.
+
+### Optional real-data research snapshot
+
+The [frozen experiment specification](experiments/frozen_protocol.yaml), [runner](experiments/run_real_data.py), [derived scenario summary](experiments/real_data_snapshot/summary.csv), [data manifest](experiments/real_data_snapshot/data_manifest.json), and [owner-review draft](experiments/REVIEW_DRAFT.md) document the separate six-stock Yahoo Finance exercise. The specification was frozen locally before its first data run but pushed to GitHub afterward; the public commit time is not proof of preregistration. The full raw quote rows are not redistributed. This research has survivorship and execution limitations, and the review draft is not a profitability claim.
+
+To re-download and run with current Yahoo history (which may change), install the optional dependency and run from the repository root:
+
+```bash
+python -m pip install 'yfinance==1.7.0'
+python experiments/run_real_data.py --output results/real_data
+```
+
+To reproduce from your own previously saved `results/real_data/adjusted_prices.csv`, use `--use-snapshot`; the runner checks its SHA256 and protocol hash against the matching local manifest before use. The public manifest alone cannot recreate the original raw rows. Do not tune the 2023-25 test based on its results.
 
 Generated artifacts include `pair_screening.csv`, `pair_refits.csv`, `experiment_config.yaml`, `equity_curve.csv`, `spread.csv`, `zscore.csv`, `signals.csv`, `fills.csv`, `trades.csv`, `cancelled_orders.csv`, `metrics.json`, and `diagnostics.png`. The gross curve is a no-cost counterfactual; net results deduct configured transaction and borrow costs. The cash benchmark holds initial capital unchanged.
 
@@ -210,7 +224,7 @@ If no actual dataset was selected, the interface will say so; a successful demo 
 - OLS coefficients are periodically refit from trailing history while flat; positions are not silently rebalanced during an open trade.
 - Signals are calculated after the close and executed at the next available open. A forced final-close liquidation is recorded as an explicit end-of-data exit.
 - Position sizing uses fractional shares and a fixed gross-notional budget based on initial capital. This first release simulates one pair at a time and does not enforce borrow availability, margin rules, portfolio-wide exposure caps, or market impact.
-- The baseline workflow uses one chronological training/test boundary. It does not tune parameters on the test period; validation-window selection, automated sensitivity grids, survivorship-free universes, and live execution remain future work.
+- The baseline CLI workflow uses one chronological training/test boundary. A separate frozen Yahoo exercise includes diagnostic validation, disjoint walk-forward folds, and cost/borrow sensitivity; neither workflow proves live performance. Survivorship-free universes and live execution remain future work.
 - Historical cointegration, significance, or returns do not ensure future relationships or profitability.
 
 See [plan.md](./plan.md) for implementation phases, assumptions, risk controls, and validation criteria.
