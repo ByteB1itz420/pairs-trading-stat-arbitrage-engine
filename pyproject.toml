@@ -19,9 +19,10 @@ dependencies = [
 pairs-trading = "pairs_trading.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["httpx>=0.27", "pytest>=8.0"]
 plots = ["matplotlib>=3.8"]
-dashboard = ["streamlit>=1.50"]
+dashboard = ["streamlit>=1.50", "plotly>=6.0"]
+backend = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
