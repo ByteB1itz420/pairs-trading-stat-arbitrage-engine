@@ -21,6 +21,7 @@ pairs-trading = "pairs_trading.cli:main"
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 plots = ["matplotlib>=3.8"]
+dashboard = ["streamlit>=1.50"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

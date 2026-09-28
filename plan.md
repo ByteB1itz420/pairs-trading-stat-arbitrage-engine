@@ -5,7 +5,7 @@
 
 ## Current implementation status
 
-The repository now has an installable Python package, YAML configuration, CSV price validation, OLS/Engle–Granger/ADF screening with Benjamini–Hochberg correction, rolling signals, a single-pair event-driven next-open simulator, scheduled trailing OLS refits while flat, transaction/borrow costs, a chronological training/test runner, performance metrics, CSV/JSON exports, plots, and unit/integration tests. Run `python -m pytest -q` and consult the README for setup and the configured experiment command.
+The repository now has an installable Python package, YAML configuration, CSV price validation, OLS/Engle–Granger/ADF screening with Benjamini–Hochberg correction, rolling signals, a single-pair event-driven next-open simulator, scheduled trailing OLS refits while flat, transaction/borrow costs, a chronological training/test runner, performance metrics, CSV/JSON exports, plots, a local Streamlit test workbench, and unit/integration tests. Run `python -m pytest -q` and consult the README for setup and the configured experiment command.
 
 The initial release intentionally does not claim every research-hardening item in this roadmap is complete. Explicit follow-up work includes a separate validation split and parameter-sensitivity workflow, point-in-time survivorship/delisting data, and portfolio-level handling for multiple overlapping pairs. Use a frozen, untouched test period for any reported strategy result.
 
@@ -340,3 +340,27 @@ evaluation:
 ```
 
 Before using these defaults, verify that they match the data frequency and chosen price fields. Any change to the signal, sizing, or execution assumptions should be versioned in the experiment configuration.
+
+## 10. Newly prioritized tasks: bug audit and deployable website
+
+### Task A — Find, reproduce, and fix existing bugs
+
+- Maintain a bug register in `status.md` with severity, reproduction evidence, fix, and regression test for each confirmed issue.
+- Re-audit configuration validation, pair-screening edge cases, walk-forward parameter flow, event ordering, order rejection/missing data, portfolio/cost accounting, metrics, exports, and dashboard behavior.
+- Add minimized regression tests for every confirmed defect and run the full suite after changes.
+- Separate reproducible code defects from known model/data limitations; do not label an unverified risk as a confirmed bug.
+- **Already found and fixed:** the backtest used the refitted hedge ratio for spread and signals but the original formation-period hedge ratio for sizing execution orders. The order now captures the ratio at signal time, and regression tests verify that the ratio used in the refit drives actual target notionals.
+- **Already found and fixed:** non-finite values (`NaN` and infinity) could pass configuration checks for strategy thresholds, costs, capital, and evaluation. Configuration now rejects them; parameterized tests cover the affected settings.
+- **Acceptance:** no known reproducible high-severity defects remain; all confirmed findings are either fixed with regression coverage or explicitly recorded as open with a reproduction case.
+
+### Task B — Build and deploy a production-ready website
+
+This follows successful local-workbench testing; the local Streamlit workbench is not itself a production deployment.
+
+1. Confirm the intended hosting provider, access model, and whether uploaded data may leave the user's machine.
+2. Define the service boundary: web UI, API/job runner, configuration validation, result storage, and a stateless/isolated execution model.
+3. Add user-controlled data upload and deletion, strict size/type limits, non-executable data parsing, and no secret/data logging.
+4. Add authentication/authorization if private projects or saved results are supported; otherwise clearly specify the public/demo-only behavior.
+5. Add deploy configuration, health checks, dependency/build locking, automated deployment smoke tests, and an operational rollback procedure.
+6. Run representative synthetic and user-authorized datasets through the deployed build and compare its results to the local test suite.
+- **Acceptance:** a documented deployment can be reproduced from source, is reachable at the chosen host, passes health and end-to-end smoke tests, and has explicit privacy, retention, and failure behavior.

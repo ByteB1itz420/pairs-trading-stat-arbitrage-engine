@@ -142,7 +142,7 @@ Python 3.11 or newer is required. From the repository root:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev,plots]"
+python -m pip install -e ".[dev,plots,dashboard]"
 ```
 
 Run the tests:
@@ -180,6 +180,18 @@ python -m pairs_trading --config configs/baseline.yaml --output results/baseline
 The command screens using only data through `train_end`, applies the predeclared Engle–Granger significance level and false-discovery-rate correction, chooses the most significant passing pair, and backtests from `test_start` through `test_end` (or the end of available data). It fails explicitly if no pair passes or the requested data is incomplete.
 
 Generated artifacts include `pair_screening.csv`, `pair_refits.csv`, `experiment_config.yaml`, `equity_curve.csv`, `spread.csv`, `zscore.csv`, `signals.csv`, `fills.csv`, `trades.csv`, `cancelled_orders.csv`, `metrics.json`, and `diagnostics.png`. The gross curve is a no-cost counterfactual; net results deduct configured transaction and borrow costs. The cash benchmark holds initial capital unchanged.
+
+## Visual local test workbench
+
+Start the browser-based workbench from the repository root:
+
+```bash
+streamlit run src/pairs_trading/dashboard.py
+```
+
+It opens locally (normally at `http://localhost:8501`). Choose **Synthetic demo** to run a deterministic cointegrated example with a reverting test-period dislocation, or choose **Upload CSV** to use your own data. Set the training cutoff, test window, screening window, signal thresholds, and costs, then click **Screen pairs and run out-of-sample test**. The workbench displays every pair's screening diagnostics, equity curves, z-scores, trades, fills, and downloadable CSV/JSON summaries. It only runs locally and does not send, persist, or trade uploaded data.
+
+This workbench is a development aid, not the production website. A separately deployed service will need its own privacy, authentication, data-retention, hosting, and operational decisions.
 
 ## Assumptions and limitations
 
