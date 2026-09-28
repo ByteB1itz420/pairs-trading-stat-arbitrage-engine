@@ -87,3 +87,12 @@ def test_csv_loader_reports_missing_prices_without_imputing(tmp_path) -> None:
     assert pd.isna(market.adjusted_close.loc["2025-01-03", "B"])
     with pytest.raises(FileNotFoundError):
         load_prices_csv(tmp_path / "absent.csv")
+
+
+def test_explicit_adjusted_open_prevents_mixed_price_basis(observations: pd.DataFrame) -> None:
+    adjusted = observations.rename(columns={"open": "adjusted_open"})
+    market = validate_market_data(adjusted)
+    assert market.open is not None
+    assert market.open.loc["2025-01-03", "B"] == 20.5
+    with pytest.raises(ValueError, match="Choose adjusted_open or legacy open"):
+        validate_market_data(observations.assign(adjusted_open=[9, 19, 10, 20]))
