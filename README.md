@@ -144,7 +144,9 @@ Import this repository on either platform and deploy the `main` branch from the 
 - **Railway API health:** [https://pairs-trading-api-production.up.railway.app/healthz](https://pairs-trading-api-production.up.railway.app/healthz)
 - **API documentation:** [https://pairs-trading-api-production.up.railway.app/docs](https://pairs-trading-api-production.up.railway.app/docs)
 
-The Vercel frontend defaults to the deployed Railway API. Backtests require the API key configured as `API_TOKEN` in Railway: retrieve it through the authenticated Railway account dashboard/CLI and enter it into the page's password field. It is not stored in browser storage or this repository. If this key is rotated, update the Railway variable and provide the replacement in the web form. The live Vercel and Railway deployments were uploaded from their respective local CLI sessions; GitHub repository auto-deploy integration was not established, so subsequent source changes must be deployed from the provider CLI or their dashboards.
+The Vercel frontend defaults to the deployed Railway API. Backtests require the API key configured as `API_TOKEN` in Railway: retrieve it through the authenticated Railway account dashboard/CLI and enter it into the page's password field. It is not stored in browser storage or this repository. If this key is rotated, update the Railway variable and provide the replacement in the web form.
+
+Railway is connected to this repository's `main` branch and will deploy pushed API/source changes. Vercel's GitHub app did not grant this private repository access during setup, so the static site was published manually. To publish later frontend changes, run `vercel deploy --prod --yes` from the repository's `site/` directory or import/connect the repository to Vercel in its dashboard.
 
 ### Run the Railway API locally
 

@@ -43,7 +43,7 @@ The audit is ongoing; these are the confirmed reproducible defects found and fix
 - Extend from one selected pair per run to portfolio-level capital allocation, pair overlap, leverage, and exposure controls.
 - Add borrow availability, margin rules, realistic partial fills, and market-impact modeling before interpreting results as executable performance.
 - Perform the broader targeted bug-audit task described in the next section of [plan.md](./plan.md).
-- Configure GitHub auto-deploy for Vercel and Railway; the current live deployments were uploaded from their authenticated CLI sessions.
+- Railway API source is connected to GitHub `main`; configure the Vercel GitHub app's repository access for automatic frontend deploys.
 - Add stronger rate limiting/abuse monitoring and review account quotas before broad public promotion.
 - **Why data appeared not to load:** neither UI auto-downloads prices. Streamlit uses generated synthetic data until CSV selection; the static site starts with a synthetic business-day demo. Chart CSVs need `timestamp`, `symbol`, and `adjusted_close`; a Python backtest additionally requires valid `open` values. Browser-local data is sent to Railway only after pressing **Screen & backtest**.
 
@@ -89,7 +89,7 @@ python -m pairs_trading --config configs/baseline.yaml --output results/baseline
 - Railway health returns `{"status":"ok"}`. Startup logs showed Railway assigned port 8080, so the public service domain was routed to 8080 instead of 8000.
 - CORS preflight from the Vercel production origin succeeds with `X-API-Key` allowed.
 - A valid production request without the API key returns HTTP 401. With the API key retrieved in-process from Railway (never printed), a production backtest completed HTTP 200 over 40 out-of-sample sessions and returned 2 synthetic trades.
-- The newest default API URL and live-deployment documentation still require a commit, push, and Vercel redeploy.
+- Production URL/default API changes were pushed to GitHub and redeployed to Vercel; Railway is linked to GitHub `main` for future deployment triggers.
 
 No real market data was used for performance claims.
 

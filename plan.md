@@ -361,7 +361,7 @@ This follows successful local-workbench testing; the local Streamlit workbench i
 
 Remaining deployment tasks:
 
-1. Configure GitHub auto-deploy for the Vercel project; the current site was deployed manually because the repository app integration was not available.
+1. Connect the Vercel project to GitHub auto-deploy when the Vercel GitHub app is granted access to the private repository; until then, publish from `site/` using the authenticated CLI.
 2. Verify future production updates after every deploy and keep the generated live URLs current in the README.
 3. Maintain the exact deployed frontend origin in Railway `CORS_ORIGINS`.
 4. Keep strict CSV parsing and request limits; do not persist user price data or log API keys.
@@ -374,9 +374,8 @@ Remaining deployment tasks:
 
 Remaining deployment and operations tasks:
 
-1. Configure GitHub auto-deploy to Railway; the initial API was uploaded from the authenticated CLI.
-2. Review account-level usage/billing limits and add stronger rate limiting/abuse monitoring before broad public promotion.
-3. Rotate the Railway API key if it needs to be shared with another authorized user; supply it via the password field without putting it into the frontend bundle.
+1. Review account-level usage/billing limits and add stronger rate limiting/abuse monitoring before broad public promotion.
+2. Rotate the Railway API key if it needs to be shared with another authorized user; supply it via the password field without putting it into the frontend bundle.
 - **Acceptance:** Railway health, CORS, API-key enforcement, and one successful 40-session out-of-sample production request were verified; uploaded market rows are not persisted.
 
 ### Task D — Provide a short branded product tour
