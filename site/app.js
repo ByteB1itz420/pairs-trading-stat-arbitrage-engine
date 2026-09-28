@@ -58,7 +58,12 @@ function parsePrices(text) {
   if ([dateIndex, symbolIndex, closeIndex].some((index) => index < 0)) {
     throw new Error("Required CSV headers are timestamp, symbol, and adjusted_close.");
   }
-  const openIndex = headers.indexOf("open");
+  const adjustedOpenIndex = headers.indexOf("adjusted_open");
+  const legacyOpenIndex = headers.indexOf("open");
+  if (adjustedOpenIndex >= 0 && legacyOpenIndex >= 0) {
+    throw new Error("Choose adjusted_open or legacy open, not both.");
+  }
+  const openIndex = adjustedOpenIndex >= 0 ? adjustedOpenIndex : legacyOpenIndex;
   const values = new Map();
   const symbols = new Set();
   const parsed = [];
@@ -77,7 +82,7 @@ function parsePrices(text) {
       throw new Error(`Adjusted close must be a positive number on CSV row ${line + 1}.`);
     }
     if (open !== null && (!Number.isFinite(open) || open <= 0)) {
-      throw new Error(`Open must be a positive number on CSV row ${line + 1}.`);
+      throw new Error(`Execution open must be a positive number on CSV row ${line + 1}.`);
     }
     const key = `${timestamp}\u0000${symbol}`;
     if (values.has(key)) throw new Error(`Duplicate ${symbol} observation on ${timestamp}.`);
