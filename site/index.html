@@ -4,6 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7f4">
+    <script>
+      (() => {
+        try {
+          const preference = localStorage.getItem("pairwise-theme");
+          document.documentElement.dataset.theme = preference === "light" || preference === "dark"
+            ? preference : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        } catch (_) {
+          document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+      })();
+    </script>
     <meta
       name="description"
       content="A private-by-default browser workspace for viewing pairs trading price data and research signals."
@@ -21,6 +32,7 @@
       <nav aria-label="Main navigation">
         <a class="nav-link" href="#workspace">Workspace</a>
         <a class="nav-link" href="#how-data-works">How data works</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">Dark mode</button>
         <a class="github-link" href="https://github.com/ByteB1itz420/pairs-trading-stat-arbitrage-engine" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
       </nav>
     </header>
