@@ -1,0 +1,63 @@
+{
+  "label": "test_cost1x_borrow0pct",
+  "train_end": "2020-12-31",
+  "evaluation_start": "2023-01-01",
+  "evaluation_end": "2025-12-31",
+  "candidate_count": 15,
+  "passing_count": 1,
+  "rule": "alphabetically ordered pairs; Engle-Granger p <= 0.05 and BH adjusted p <= 0.05; choose lowest adjusted p, alphabetical tie-break; no pass => cash",
+  "selected_pair": [
+    "COP",
+    "CVX"
+  ],
+  "selected_adjusted_pvalue": 0.017752313916062017,
+  "protocol_sha256": "01efe3f8cb686a4beb760b198c395b285f64e379f1829001a748aae7d947bd74",
+  "config": {
+    "universe": [
+      "XOM",
+      "CVX",
+      "COP",
+      "JPM",
+      "BAC",
+      "WFC"
+    ],
+    "data": {
+      "frequency": "daily",
+      "price_field": "adjusted_close",
+      "min_observations": 252,
+      "path": "adjusted_prices.csv"
+    },
+    "screening": {
+      "formation_window_days": 252,
+      "engle_granger_significance": 0.05,
+      "adf_significance": 0.05,
+      "multiple_testing_method": "benjamini_hochberg",
+      "refit_frequency_days": 21
+    },
+    "signals": {
+      "zscore_window_days": 60,
+      "entry_threshold": 2.0,
+      "exit_threshold": 0.5,
+      "stop_threshold": 4.0,
+      "max_holding_days": 30
+    },
+    "execution": {
+      "decision_time": "close",
+      "fill_time": "next_open",
+      "commission_bps_per_side": 2.0,
+      "slippage_bps_per_side": 5.0,
+      "annual_borrow_rate": 0.0,
+      "initial_capital": 100000,
+      "gross_exposure_fraction": 1.0
+    },
+    "evaluation": {
+      "split_method": "chronological",
+      "report_gross_and_net": true,
+      "risk_free_rate_annual": 0.0,
+      "annualization_days": 252,
+      "train_end": "2020-12-31",
+      "test_start": "2023-01-01",
+      "test_end": "2025-12-31"
+    }
+  }
+}
