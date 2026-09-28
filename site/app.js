@@ -492,7 +492,32 @@ function activateSource(button) {
   for (const item of document.querySelectorAll(".source-button")) item.classList.toggle("is-active", item === button);
 }
 
+function initializeTheme() {
+  const toggle = $("#theme-toggle");
+  const system = window.matchMedia("(prefers-color-scheme: dark)");
+  const label = () => {
+    const dark = document.documentElement.dataset.theme === "dark";
+    toggle.textContent = dark ? "Light mode" : "Dark mode";
+    toggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+    toggle.setAttribute("aria-pressed", String(dark));
+    document.querySelector('meta[name="theme-color"]').content = dark ? "#101d1b" : "#f5f7f4";
+  };
+  toggle.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("pairwise-theme", next); } catch (_) { /* storage disabled */ }
+    label();
+  });
+  system.addEventListener("change", (event) => {
+    try { if (localStorage.getItem("pairwise-theme")) return; } catch (_) { /* storage disabled */ }
+    document.documentElement.dataset.theme = event.matches ? "dark" : "light";
+    label();
+  });
+  label();
+}
+
 function initialize() {
+  initializeTheme();
   $("#demo-button").addEventListener("click", () => {
     activateSource($("#demo-button"));
     $("#csv-file").value = "";
