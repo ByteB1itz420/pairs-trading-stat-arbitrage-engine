@@ -1,0 +1,24 @@
+{
+  "source": "Yahoo Finance via yfinance 1.7.0",
+  "source_docs": "https://ranaroussi.github.io/yfinance/reference/api/yfinance.download.html",
+  "downloaded_at_utc": "2026-09-28T22:54:35.888191+00:00",
+  "protocol_sha256": "01efe3f8cb686a4beb760b198c395b285f64e379f1829001a748aae7d947bd74",
+  "universe": [
+    "XOM",
+    "CVX",
+    "COP",
+    "JPM",
+    "BAC",
+    "WFC"
+  ],
+  "auto_adjust": true,
+  "adjusted_open_field": "Open",
+  "adjusted_close_field": "Close",
+  "start_inclusive": "2017-01-01",
+  "end_exclusive": "2026-01-01",
+  "rows": 13572,
+  "first_session": "2017-01-03",
+  "last_session": "2025-12-31",
+  "sessions": 2262,
+  "data_sha256": "873f1b26b3bbeb7d426ba7629d5a0bd77e2b5c6220bc42d24fd322a86786d69a"
+}
