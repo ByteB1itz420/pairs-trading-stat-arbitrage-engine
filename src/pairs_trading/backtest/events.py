@@ -20,6 +20,7 @@ class OrderIntent:
     decision_timestamp: pd.Timestamp
     reason: str
     zscore: float | None
+    hedge_ratio: float
 
 
 @dataclass(frozen=True)

@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, fields
 from datetime import date
+import math
 from pathlib import Path
 from typing import Any, TypeVar
 
 import yaml
 
 T = TypeVar("T")
+
+
+def _require_finite(name: str, value: float) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError(f"{name} must be a finite number.")
 
 
 @dataclass(frozen=True)
@@ -20,6 +26,8 @@ class DataConfig:
     path: str = "data/raw/prices.csv"
 
     def __post_init__(self) -> None:
+        if isinstance(self.min_observations, bool) or not isinstance(self.min_observations, int):
+            raise ValueError("min_observations must be an integer.")
         if self.frequency != "daily":
             raise ValueError("Only daily data is supported by the initial engine.")
         if self.price_field != "adjusted_close":
@@ -39,8 +47,14 @@ class ScreeningConfig:
     def __post_init__(self) -> None:
         for name in ("engle_granger_significance", "adf_significance"):
             value = getattr(self, name)
+            _require_finite(name, value)
             if not 0 < value < 1:
                 raise ValueError(f"{name} must be between 0 and 1.")
+        if any(
+            isinstance(value, bool) or not isinstance(value, int)
+            for value in (self.formation_window_days, self.refit_frequency_days)
+        ):
+            raise ValueError("Formation and refit windows must be integers.")
         if self.formation_window_days < 20 or self.refit_frequency_days < 1:
             raise ValueError("Formation and refit windows must be at least 20 and positive.")
         if self.multiple_testing_method != "benjamini_hochberg":
@@ -56,6 +70,13 @@ class SignalConfig:
     max_holding_days: int = 30
 
     def __post_init__(self) -> None:
+        for name in ("entry_threshold", "exit_threshold", "stop_threshold"):
+            _require_finite(name, getattr(self, name))
+        if any(
+            isinstance(value, bool) or not isinstance(value, int)
+            for value in (self.zscore_window_days, self.max_holding_days)
+        ):
+            raise ValueError("Signal windows and holding period must be integers.")
         if self.zscore_window_days < 2 or self.max_holding_days < 1:
             raise ValueError("Signal windows and holding period must be positive.")
         if not 0 <= self.exit_threshold < self.entry_threshold:
@@ -75,6 +96,14 @@ class ExecutionConfig:
     gross_exposure_fraction: float = 1.0
 
     def __post_init__(self) -> None:
+        for name in (
+            "commission_bps_per_side",
+            "slippage_bps_per_side",
+            "annual_borrow_rate",
+            "initial_capital",
+            "gross_exposure_fraction",
+        ):
+            _require_finite(name, getattr(self, name))
         if self.decision_time != "close" or self.fill_time != "next_open":
             raise ValueError("Execution must decide at close and fill at the next open.")
         if min(
@@ -100,6 +129,9 @@ class EvaluationConfig:
     test_end: str | None = None
 
     def __post_init__(self) -> None:
+        _require_finite("risk_free_rate_annual", self.risk_free_rate_annual)
+        if isinstance(self.annualization_days, bool) or not isinstance(self.annualization_days, int):
+            raise ValueError("annualization_days must be an integer.")
         if self.split_method != "chronological":
             raise ValueError("Only chronological evaluation splits are supported.")
         if self.annualization_days < 1:

@@ -198,7 +198,7 @@ class BacktestEngine:
                     order,
                     event.timestamp,
                     event.reference_prices,
-                    self.pair,
+                    current_pair,
                     portfolio,
                 )
                 if not fills:
@@ -297,6 +297,7 @@ class BacktestEngine:
                     decision_timestamp=event.timestamp,
                     reason=signal.reason,
                     zscore=signal.zscore,
+                    hedge_ratio=current_pair.hedge_ratio,
                 )
                 current_index = date_positions[event.timestamp]
                 if current_index + 1 >= len(self.dates):
@@ -322,12 +323,13 @@ class BacktestEngine:
                         decision_timestamp=event.timestamp,
                         reason="end_of_data",
                         zscore=None,
+                        hedge_ratio=current_pair.hedge_ratio,
                     )
                     fills = execution_model.create_fills(
                         order,
                         event.timestamp,
                         event.close_prices,
-                        self.pair,
+                        current_pair,
                         portfolio,
                     )
                     for fill in fills:

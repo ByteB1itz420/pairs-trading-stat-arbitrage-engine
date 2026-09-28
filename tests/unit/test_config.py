@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from pairs_trading.config import EvaluationConfig, ExperimentConfig, SignalConfig, load_config
+from pairs_trading.config import (
+    EvaluationConfig,
+    ExecutionConfig,
+    ExperimentConfig,
+    SignalConfig,
+    load_config,
+)
 
 
 def test_baseline_config_loads_with_validated_defaults() -> None:
@@ -36,3 +42,18 @@ def test_unknown_configuration_keys_are_rejected(tmp_path: Path) -> None:
 def test_evaluation_dates_must_be_chronological() -> None:
     with pytest.raises(ValueError, match="later than train_end"):
         EvaluationConfig(train_end="2025-01-02", test_start="2025-01-02")
+
+
+@pytest.mark.parametrize(
+    ("config_type", "kwargs"),
+    [
+        (SignalConfig, {"entry_threshold": float("nan")}),
+        (SignalConfig, {"stop_threshold": float("inf")}),
+        (ExecutionConfig, {"commission_bps_per_side": float("nan")}),
+        (ExecutionConfig, {"initial_capital": float("inf")}),
+        (EvaluationConfig, {"risk_free_rate_annual": float("nan")}),
+    ],
+)
+def test_non_finite_configuration_values_are_rejected(config_type, kwargs) -> None:
+    with pytest.raises(ValueError, match="finite"):
+        config_type(**kwargs)

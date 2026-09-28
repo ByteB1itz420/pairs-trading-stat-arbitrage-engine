@@ -23,20 +23,20 @@ class ExecutionModel:
         pair: PairAnalysis,
         portfolio: PortfolioLedger,
     ) -> list[Fill]:
-        if pair.hedge_ratio is None:
-            raise ValueError("A fitted hedge ratio is required for execution.")
         if (order.symbol_a, order.symbol_b) != (pair.symbol_a, pair.symbol_b):
             raise ValueError("Order symbols do not match the fitted pair.")
+        if not math.isfinite(order.hedge_ratio):
+            raise ValueError("Order hedge ratio must be finite.")
         budget = self.config.initial_capital * self.config.gross_exposure_fraction
         side_sign = {
             PositionSide.FLAT: 0.0,
             PositionSide.LONG_SPREAD: 1.0,
             PositionSide.SHORT_SPREAD: -1.0,
         }[order.target_side]
-        denominator = 1.0 + abs(pair.hedge_ratio)
+        denominator = 1.0 + abs(order.hedge_ratio)
         target_notionals = {
             pair.symbol_a: side_sign * budget / denominator,
-            pair.symbol_b: -side_sign * pair.hedge_ratio * budget / denominator,
+            pair.symbol_b: -side_sign * order.hedge_ratio * budget / denominator,
         }
 
         fills: list[Fill] = []

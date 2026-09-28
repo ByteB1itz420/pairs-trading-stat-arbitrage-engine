@@ -17,7 +17,7 @@ def test_pair_sizing_respects_gross_notional_and_adverse_execution_costs() -> No
         slippage_bps_per_side=20,
     )
     ledger = PortfolioLedger(config.initial_capital)
-    pair = PairAnalysis("A", "B", 100, intercept=0.0, hedge_ratio=2.0)
+    pair = PairAnalysis("A", "B", 100, intercept=0.0, hedge_ratio=0.5)
     order = OrderIntent(
         "A",
         "B",
@@ -25,6 +25,7 @@ def test_pair_sizing_respects_gross_notional_and_adverse_execution_costs() -> No
         pd.Timestamp("2025-01-01"),
         "test",
         -2.0,
+        2.0,
     )
 
     fills = ExecutionModel(config).create_fills(
@@ -81,6 +82,7 @@ def test_missing_open_for_active_leg_fails_before_partial_execution() -> None:
         pd.Timestamp("2025-01-01"),
         "test",
         -2.0,
+        1.0,
     )
 
     with pytest.raises(ValueError, match="missing or invalid open for B"):

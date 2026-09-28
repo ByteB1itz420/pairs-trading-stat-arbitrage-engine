@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from pairs_trading.backtest.engine import run_backtest
 from pairs_trading.cli import run_experiment
@@ -220,3 +221,16 @@ def test_walk_forward_refits_are_trailing_and_frozen_during_open_trades() -> Non
         for trade in result.trades
         for refit in result.refits
     )
+    entry_fills = [
+        fill for fill in result.fills if fill.timestamp == result.trades[0].entry_timestamp
+    ]
+    entry_a, entry_b = entry_fills
+    applied_refit = max(
+        (refit for refit in result.refits if refit.timestamp < entry_a.timestamp),
+        key=lambda refit: refit.timestamp,
+    )
+    entry_notional_ratio = abs(
+        entry_b.quantity * entry_b.reference_price
+        / (entry_a.quantity * entry_a.reference_price)
+    )
+    assert entry_notional_ratio == pytest.approx(abs(applied_refit.hedge_ratio))
