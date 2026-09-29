@@ -1,0 +1,62 @@
+{
+  "method": "Disjoint annual folds; selection from training history only; no passing pair stays in cash. Six-stock equal-weight buy-and-hold is directional, not risk matched.",
+  "folds": [
+    {
+      "fold": 1,
+      "train_end": "2019-12-31",
+      "evaluation_start": "2020-01-01",
+      "evaluation_end": "2020-12-31",
+      "protocol_sha256": "01efe3f8cb686a4beb760b198c395b285f64e379f1829001a748aae7d947bd74",
+      "candidate_count": 15,
+      "passing_count": 0,
+      "selected_pair": null,
+      "selected_adjusted_pvalue": null,
+      "net_return": 0.0,
+      "gross_return": 0.0,
+      "maximum_drawdown": 0.0,
+      "trade_count": 0,
+      "equal_weight_universe_buy_hold_return": -0.2685368278793948,
+      "cash_benchmark_return": 0.0,
+      "status": "no pair passed; cash/no trade"
+    },
+    {
+      "fold": 2,
+      "train_end": "2020-12-31",
+      "evaluation_start": "2021-01-01",
+      "evaluation_end": "2021-12-31",
+      "protocol_sha256": "01efe3f8cb686a4beb760b198c395b285f64e379f1829001a748aae7d947bd74",
+      "candidate_count": 15,
+      "passing_count": 1,
+      "selected_pair": [
+        "COP",
+        "CVX"
+      ],
+      "selected_adjusted_pvalue": 0.017752313916062017,
+      "net_return": -0.032367245064260475,
+      "gross_return": -0.023587468803570988,
+      "maximum_drawdown": -0.08365378033901782,
+      "trade_count": 6,
+      "equal_weight_universe_buy_hold_return": 0.5576744462852365,
+      "cash_benchmark_return": 0.0,
+      "status": "traded"
+    },
+    {
+      "fold": 3,
+      "train_end": "2021-12-31",
+      "evaluation_start": "2022-01-01",
+      "evaluation_end": "2022-12-30",
+      "protocol_sha256": "01efe3f8cb686a4beb760b198c395b285f64e379f1829001a748aae7d947bd74",
+      "candidate_count": 15,
+      "passing_count": 0,
+      "selected_pair": null,
+      "selected_adjusted_pvalue": null,
+      "net_return": 0.0,
+      "gross_return": 0.0,
+      "maximum_drawdown": 0.0,
+      "trade_count": 0,
+      "equal_weight_universe_buy_hold_return": 0.24439126377195275,
+      "cash_benchmark_return": 0.0,
+      "status": "no pair passed; cash/no trade"
+    }
+  ]
+}
