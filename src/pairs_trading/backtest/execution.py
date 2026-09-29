@@ -60,6 +60,12 @@ class ExecutionModel:
                 )
             slippage_rate = self.config.slippage_bps_per_side / 10_000
             execution_price = reference_price * (1 + math.copysign(slippage_rate, quantity))
+            if not math.isfinite(execution_price) or execution_price <= 0:
+                raise ValueError(
+                    f"Cannot execute pair order at {timestamp}: slippage of "
+                    f"{self.config.slippage_bps_per_side} bps yields a "
+                    f"non-positive execution price for {symbol}."
+                )
             commission = (
                 abs(quantity * execution_price)
                 * self.config.commission_bps_per_side
