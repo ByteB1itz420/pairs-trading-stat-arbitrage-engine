@@ -112,6 +112,12 @@ class ExecutionConfig:
             self.annual_borrow_rate,
         ) < 0:
             raise ValueError("Execution costs cannot be negative.")
+        if self.slippage_bps_per_side >= 10_000:
+            raise ValueError(
+                "slippage_bps_per_side must stay below 10,000 bps; "
+                "slippage at or above 100% would price a sell leg at "
+                "zero or a negative execution price."
+            )
         if self.initial_capital <= 0:
             raise ValueError("initial_capital must be positive.")
         if not 0 < self.gross_exposure_fraction <= 1:
