@@ -94,3 +94,10 @@ def test_missing_open_for_active_leg_fails_before_partial_execution() -> None:
             ledger,
         )
     assert ledger.positions == {}
+
+
+@pytest.mark.parametrize("slippage_bps", [10_000, 12_000])
+def test_unexecutable_slippage_is_rejected_before_any_pair_fill(slippage_bps: float) -> None:
+    """A sale at zero or negative price must never partially book its other leg."""
+    with pytest.raises(ValueError, match="slippage_bps_per_side"):
+        ExecutionConfig(initial_capital=10_000, slippage_bps_per_side=slippage_bps)
